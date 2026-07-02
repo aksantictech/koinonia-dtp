@@ -5,7 +5,7 @@
      repli silencieux géré côté page (mode démo / cache).
    Pour l'offline d'écriture (file d'attente), voir ARCHITECTURE.md (outbox IndexedDB).
 */
-const CACHE = 'koinonia-v19';
+const CACHE = 'koinonia-v21';
 const SHELL = [
   './', './index.html', './dashboard.html', './members.html', './souls.html', './departments.html', './mission.html', './requests.html', './publications.html', './diagnostic.html', './push.js', './config.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
@@ -60,9 +60,20 @@ self.addEventListener('push', e => {
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const target = (e.notification.data && e.notification.data.url) || './index.html';
-  e.waitUntil(clients.matchAll({ type:'window', includeUncontrolled:true }).then(list => {
-    for (const c of list) { if ('focus' in c) return c.focus(); }
-    if (clients.openWindow) return clients.openWindow(target);
-  }));
+  const target = (e.notification.data && e.notification.data.url) || '/index.html';
+  e.waitUntil((async () => {
+    const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    let client = list.find(c => c.url && c.url.indexOf('/index.html') !== -1) || list[0];
+    if (client) {
+      await client.focus();
+      // Dit à la page publique quelle publication ouvrir (marche même si déjà ouverte)
+      client.postMessage({ type: 'openpub', url: target });
+      // Si la fenêtre ouverte n'est PAS la page publique, on l'y amène
+      if ('navigate' in client && (!client.url || client.url.indexOf('/index.html') === -1)) {
+        try { await client.navigate(target); } catch (_) {}
+      }
+      return;
+    }
+    if (clients.openWindow) await clients.openWindow(target);
+  })());
 });

@@ -749,6 +749,14 @@
     }
   }
   window.addEventListener('hashchange', openPubFromHash);
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.addEventListener('message', ev=>{
+      if(ev.data && ev.data.type==='openpub' && ev.data.url){
+        const m=String(ev.data.url).match(/pub=([^&]+)/);
+        if(m){ try{ location.hash='pub='+m[1]; }catch(e){} openPubFromHash(); }
+      }
+    });
+  }
 
   /* ---- SOUMISSIONS ---- */
   async function submitVisitor(){
