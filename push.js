@@ -1,9 +1,6 @@
-/* KOINONIA — Abonnement aux notifications push
-   Nécessite window.KOINONIA.VAPID_PUBLIC_KEY (voir db/PUSH.md).
-   Tant que la clé n'est pas définie, ce script ne fait rien (silencieux). */
+/* KOINONIA — Abonnement aux notifications push (v2, avec messages d'erreur clairs) */
 (function () {
   const K = window.KOINONIA;
-  if (!K || !K.VAPID_PUBLIC_KEY || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
   function urlB64ToUint8Array(base64) {
     const pad = '='.repeat((4 - base64.length % 4) % 4);
@@ -13,32 +10,44 @@
     return arr;
   }
 
+  // Toujours défini, pour pouvoir renvoyer un message d'erreur précis.
   window.koinoniaEnablePush = async function () {
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') return false;
-      const reg = await navigator.serviceWorker.ready;
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlB64ToUint8Array(K.VAPID_PUBLIC_KEY)
-        });
-      }
-      const j = sub.toJSON();
-      const sb = K.isConfigured() && K.client();
-      if (sb) {
-        await sb.from('push_subscriptions').upsert({
-          endpoint: j.endpoint,
-          p256dh: j.keys && j.keys.p256dh,
-          auth: j.keys && j.keys.auth,
-          user_agent: navigator.userAgent
-        }, { onConflict: 'endpoint', ignoreDuplicates: true });
-      }
-      return true;
-    } catch (e) { console.warn('Push:', e); return false; }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window))
+      throw new Error("Ce navigateur ne gère pas les notifications push. Sur iPhone, installe d'abord l'app sur l'écran d'accueil (Partager → Sur l'écran d'accueil), puis rouvre-la.");
+    if (!K || !K.VAPID_PUBLIC_KEY)
+      throw new Error("Clé VAPID absente (config.js pas à jour dans le cache). Videz le cache et rechargez.");
+
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted')
+      throw new Error("Permission des notifications non accordée (état : " + perm + ").");
+
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8Array(K.VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const j = sub.toJSON();
+    const sb = K.isConfigured() && K.client();
+    if (!sb) throw new Error("Supabase non configuré côté application.");
+
+    const { error } = await sb.from('push_subscriptions').upsert({
+      endpoint: j.endpoint,
+      p256dh: j.keys && j.keys.p256dh,
+      auth: j.keys && j.keys.auth,
+      user_agent: navigator.userAgent
+    }, { onConflict: 'endpoint', ignoreDuplicates: true });
+    if (error) throw new Error("Enregistrement en base échoué : " + (error.message || JSON.stringify(error)));
+
+    return true;
   };
 
-  // Si déjà autorisé, on (ré)enregistre l'abonnement en silence
-  if (Notification.permission === 'granted') window.koinoniaEnablePush();
+  // Si l'autorisation est déjà accordée, on (ré)enregistre l'abonnement en silence
+  if (K && K.VAPID_PUBLIC_KEY && ('serviceWorker' in navigator) && ('PushManager' in window)
+      && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    window.koinoniaEnablePush().catch(function (e) { console.warn('Push auto:', e); });
+  }
 })();
