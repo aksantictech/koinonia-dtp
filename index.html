@@ -224,6 +224,7 @@
   .pubcard .pdate{font-size:11px;color:var(--muted);margin-top:12px}
   .pubcard a.pmedia{margin-top:12px;align-self:flex-start;font-size:13px;font-weight:600;color:var(--gold)}
   .pubempty{grid-column:1/-1;text-align:center;color:var(--muted);padding:30px 0}
+  .pubcard.pubhighlight{outline:2px solid var(--gold);box-shadow:0 0 0 5px rgba(232,184,95,.22);border-color:var(--gold)}
 </style>
 </head>
 <body>
@@ -715,7 +716,7 @@
       {kind:'activite',title:'Culte de réveil — dimanche',body:'Un temps de prière précédera le culte à 7h30. Venez nombreux !',published_at:''}
     ];
     if(LIVE){try{const{data}=await sb.from('publications').select('*').eq('is_published',true).order('published_at',{ascending:false}).limit(30);if(data&&data.length)PUBS=data;}catch(e){}}
-    renderPubFilters(); renderPubs();
+    renderPubFilters(); renderPubs(); openPubFromHash();
   }
   function renderPubFilters(){
     const defs=[['all','Tout'],['actualite','Actualités'],['activite','Activités'],['video','Vidéos'],['message','Messages'],['audio','Audio']];
@@ -729,11 +730,25 @@
     const F=document.getElementById('pubFeed');
     if(!rows.length){F.innerHTML='<div class="pubempty">Aucune publication pour le moment.</div>';return;}
     F.innerHTML=rows.map(p=>{const k=PUBKINDS[p.kind]||['',''];const date=(p.published_at||'').toString().slice(0,10);
-      return `<div class="pubcard"><span class="pk" style="background:${k[1]}22;color:${k[1]}">${k[0]}</span>
+      return `<div class="pubcard"${p.id?` id="pub-${esc(String(p.id))}"`:''}><span class="pk" style="background:${k[1]}22;color:${k[1]}">${k[0]}</span>
         <h3>${esc(p.title)}</h3>${p.body?`<p>${esc(p.body)}</p>`:''}
         ${p.media_url?`<a class="pmedia" href="${esc(p.media_url)}" target="_blank" rel="noopener">▶ Ouvrir</a>`:''}
         ${date?`<div class="pdate">${esc(date)}</div>`:''}</div>`;}).join('');
   }
+  function openPubFromHash(){
+    const m=(location.hash||'').match(/pub=([^&]+)/); if(!m) return;
+    const id=decodeURIComponent(m[1]);
+    if(PUB_FILT!=='all'){ PUB_FILT='all'; renderPubFilters(); renderPubs(); }
+    const el=document.getElementById('pub-'+id);
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.classList.add('pubhighlight');
+      setTimeout(()=>el.classList.remove('pubhighlight'),2600);
+    } else {
+      const sec=document.getElementById('actualites'); if(sec) sec.scrollIntoView({behavior:'smooth'});
+    }
+  }
+  window.addEventListener('hashchange', openPubFromHash);
 
   /* ---- SOUMISSIONS ---- */
   async function submitVisitor(){

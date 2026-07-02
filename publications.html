@@ -168,14 +168,17 @@ async function savePub(){
   try{
     if(EDIT<0){
       if(LIVE&&SESSION){
-        const {error}=await sb.from('publications').insert({...row,church_id:K.CHURCH_ID,created_by:UID});
+        const {data,error}=await sb.from('publications').insert({...row,church_id:K.CHURCH_ID,created_by:UID}).select('id').single();
         if(error) throw error;
+        row.id=data&&data.id;
         await load();
       } else {
-        PUBS.unshift({...row,id:'demo-'+Date.now(),published_at:'maintenant'});
+        row.id='demo-'+Date.now();
+        PUBS.unshift({...row,published_at:'maintenant'});
       }
     } else {
       const p=PUBS[EDIT];
+      row.id=p.id;
       if(LIVE&&SESSION&&!String(p.id).startsWith('demo')){
         const {error}=await sb.from('publications').update(row).eq('id',p.id);
         if(error) throw error;
@@ -209,7 +212,7 @@ async function notifyAll(pub){
         'Content-Type':'application/json',
         'apikey':window.KOINONIA.SUPABASE_ANON_KEY,
         'Authorization':'Bearer '+session.access_token},
-      body:JSON.stringify({title:pub.title,body:(pub.body||'').slice(0,120),kind:pub.kind,url:'index.html'})});
+      body:JSON.stringify({title:pub.title,body:(pub.body||'').slice(0,120),kind:pub.kind,url:'/index.html'+(pub.id?('#pub='+encodeURIComponent(pub.id)):'')})});
     let bodyText=''; try{ bodyText=await r.text(); }catch(e){}
     if(r.ok){
       let sent=null; try{ sent=JSON.parse(bodyText).sent; }catch(e){}
