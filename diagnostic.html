@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Koinonia — Diagnostic</title>
+<meta name="theme-color" content="#120e22">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#120e22;--bg2:#0c0918;--surface:#1d1736;--surface2:#241d44;--line:rgba(232,184,95,.14);--line-soft:rgba(255,255,255,.06);
+    --gold:#e8b85f;--gold2:#cf9a3d;--violet:#9b7fd4;--ink:#f5efe4;--muted:#a193ba;--green:#6bbf8a;--coral:#e58163;--blue:#7fa8d4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,rgba(155,127,212,.18),transparent 60%),radial-gradient(900px 600px at 0% 110%,rgba(232,184,95,.10),transparent 55%),linear-gradient(160deg,var(--bg),var(--bg2))}
+  a{color:inherit}
+  .wrap{max-width:720px;margin:0 auto;padding:26px 18px 60px}
+  .head{margin-bottom:20px}
+  .head h1{font-family:'Fraunces';font-weight:600;font-size:26px}
+  .head p{color:var(--muted);font-size:13.5px;margin-top:5px}
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px;font-size:14px;display:flex;align-items:center;gap:12px}
+  .summary .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex:none}
+  .summary.ok .dot{background:var(--green)}.summary.warn .dot{background:var(--gold)}.summary.bad .dot{background:var(--coral)}
+  .row{background:rgba(255,255,255,.03);border:1px solid var(--line-soft);border-radius:13px;padding:14px 16px;margin-bottom:9px;display:flex;align-items:flex-start;gap:13px}
+  .row .st{font-size:18px;line-height:1.3;flex:none;width:22px;text-align:center}
+  .row .tx{flex:1}
+  .row .tx b{font-size:14.5px;font-weight:600}
+  .row .tx .d{font-size:12.5px;color:var(--muted);margin-top:3px;word-break:break-word}
+  .row .d.err{color:var(--coral)}
+  .actions{display:flex;gap:10px;margin:18px 0}
+  .btn{font-family:inherit;font-weight:600;border-radius:11px;cursor:pointer;border:1px solid var(--line-soft);font-size:13px;padding:11px 16px;background:var(--surface);color:var(--ink)}
+  .btn-gold{background:linear-gradient(120deg,var(--gold),var(--gold2));color:#241803;border:none}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:10px}
+  .note code{background:rgba(255,255,255,.06);padding:2px 6px;border-radius:6px;font-size:12px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1>🔧 Diagnostic</h1>
+      <p>Vérifie que la base, les rôles et les notifications sont bien en place.</p>
+    </div>
+    <div class="summary" id="summary"><span class="dot"></span><span id="summaryText">Analyse en cours…</span></div>
+    <div id="rows"></div>
+    <div class="actions">
+      <button class="btn btn-gold" onclick="run()">↻ Relancer</button>
+      <a class="btn" href="dashboard.html">← Tableau de bord</a>
+    </div>
+    <div class="note">
+      En cas de croix rouge sur une table ou une colonne : le SQL <code>04b_features.sql</code> n'a probablement pas été exécuté.
+      Pour le push : voir <code>db/PUSH.md</code>.
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+window.KOINONIA=window.KOINONIA||{CHURCH_ID:'11111111-1111-1111-1111-111111111111',isConfigured(){return false},client(){return null}};
+const K=window.KOINONIA, sb=K.isConfigured()?K.client():null;
+let SESSION=null, ROLE='—';
+
+const ROWS=document.getElementById('rows');
+function addRow(id,label){const el=document.createElement('div');el.className='row';el.id='r_'+id;
+  el.innerHTML='<div class="st">⏳</div><div class="tx"><b>'+label+'</b><div class="d">…</div></div>';ROWS.appendChild(el);return el;}
+function setRow(id,ok,detail){const el=document.getElementById('r_'+id);if(!el)return;
+  el.querySelector('.st').textContent = ok===true?'✅':ok==='warn'?'⚠️':'❌';
+  const d=el.querySelector('.d');d.textContent=detail||'';d.className='d'+(ok===false?' err':'');}
+
+async function check(id,label,fn){addRow(id,label);try{const r=await fn();setRow(id,r.ok,r.detail);return r.ok;}catch(e){setRow(id,false,(e.message||String(e)));return false;}}
+
+async function run(){
+  ROWS.innerHTML='';
+  const S=document.getElementById('summary'),ST=document.getElementById('summaryText');
+  S.className='summary';ST.textContent='Analyse en cours…';
+  let bad=0,warn=0;
+
+  // 1. Configuration
+  const configured = K.isConfigured && K.isConfigured();
+  await check('cfg','Configuration Supabase',async()=>configured?{ok:true,detail:'Clés présentes dans config.js'}:{ok:false,detail:'config.js non renseigné — mode démo'});
+  if(!configured){ finish(1,0); return; }
+
+  // 2. Session
+  const {data:{session}}=await sb.auth.getSession();
+  SESSION=session;
+  if(!session){ await check('sess','Session active',async()=>({ok:false,detail:'Non connecté — connecte-toi d\'abord depuis la page publique'})); finish(1,0); return; }
+  await check('sess','Session active',async()=>({ok:true,detail:session.user.email}));
+
+  // 3. Rôle
+  await check('role','Rôle du compte',async()=>{
+    const {data,error}=await sb.from('profiles').select('role').eq('id',session.user.id).single();
+    if(error) throw error; ROLE=data?.role||'membre';
+    const priv=['pasteur_titulaire','pasteur_site','admin','saisie','intercession'].includes(ROLE);
+    return {ok:priv?true:'warn',detail:'Rôle : '+ROLE+(priv?'':' (rôle sans accès admin)')};
+  });
+
+  // 4. Table Publications
+  bad += !(await check('pub','Table Publications (lecture)',async()=>{
+    const {error}=await sb.from('publications').select('id').limit(1); if(error) throw error;
+    return {ok:true,detail:'Table publications accessible'};
+  }))?1:0;
+
+  // 5. Départements + is_active
+  bad += !(await check('dept','Départements + colonne is_active',async()=>{
+    const {error}=await sb.from('departments').select('id,is_active').limit(1); if(error) throw error;
+    return {ok:true,detail:'OK'};
+  }))?1:0;
+
+  // 6. Églises + is_active
+  bad += !(await check('church','Églises + colonne is_active',async()=>{
+    const {error}=await sb.from('churches').select('id,is_active').limit(1); if(error) throw error;
+    return {ok:true,detail:'OK'};
+  }))?1:0;
+
+  // 7. Prières + colonnes de suivi
+  bad += !(await check('pray','Demandes de prière + suivi (prayed_at, answered_at)',async()=>{
+    const {error}=await sb.from('prayer_requests').select('id,prayed_at,answered_at').limit(1); if(error) throw error;
+    return {ok:true,detail:'OK'};
+  }))?1:0;
+
+  // 8. Vue statistiques de prière
+  bad += !(await check('pstats','Vue v_prayer_stats',async()=>{
+    const {error}=await sb.from('v_prayer_stats').select('*').limit(1); if(error) throw error;
+    return {ok:true,detail:'Vue accessible'};
+  }))?1:0;
+
+  // 9. Abonnements push
+  bad += !(await check('push','Table push_subscriptions',async()=>{
+    const {error}=await sb.from('push_subscriptions').select('id').limit(1); if(error) throw error;
+    return {ok:true,detail:'Table accessible'};
+  }))?1:0;
+
+  // 10. Clé VAPID
+  await check('vapid','Clé VAPID (config.js)',async()=> K.VAPID_PUBLIC_KEY?{ok:true,detail:'Clé publique présente'}:{ok:'warn',detail:'Absente — le push ne pourra pas s\'activer'});
+  if(!K.VAPID_PUBLIC_KEY) warn++;
+
+  // 11. Service worker
+  await check('sw','Service worker',async()=>{
+    if(!('serviceWorker' in navigator)) return {ok:'warn',detail:'Non supporté par ce navigateur'};
+    const reg=await navigator.serviceWorker.getRegistration();
+    return reg?{ok:true,detail:'Enregistré'}:{ok:'warn',detail:'Pas encore enregistré (ouvre d\'abord la page publique)'};
+  });
+
+  // 12. Fonction send-push déployée
+  await check('fn','Fonction send-push déployée',async()=>{
+    if(!K.SUPABASE_URL) return {ok:'warn',detail:'URL Supabase manquante'};
+    const url=K.SUPABASE_URL.replace(/\/$/,'')+'/functions/v1/send-push';
+    try{
+      const r=await fetch(url,{method:'OPTIONS'});
+      if(r.status && r.status<500 && r.status!==404) return {ok:true,detail:'La fonction répond'};
+      if(r.status===404) return {ok:'warn',detail:'Non déployée (voir db/PUSH.md)'};
+      return {ok:'warn',detail:'Réponse inattendue : '+r.status};
+    }catch(e){ return {ok:'warn',detail:'Non déployée ou injoignable (voir db/PUSH.md)'}; }
+  });
+  warn += K.VAPID_PUBLIC_KEY?0:0; // déjà compté
+
+  finish(0,bad);
+}
+function finish(_,bad){
+  const S=document.getElementById('summary'),ST=document.getElementById('summaryText');
+  const warns=[...document.querySelectorAll('.row .st')].filter(s=>s.textContent==='⚠️').length;
+  const bads=[...document.querySelectorAll('.row .st')].filter(s=>s.textContent==='❌').length;
+  if(bads>0){S.className='summary bad';ST.textContent=bads+' problème(s) bloquant(s) — regarde les croix rouges ci-dessous.';}
+  else if(warns>0){S.className='summary warn';ST.textContent='Base OK. '+warns+' point(s) d\'attention (souvent le push, non bloquant).';}
+  else{S.className='summary ok';ST.textContent='Tout est en place. 🎉 La base, les rôles et le push répondent.';}
+}
+run();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>

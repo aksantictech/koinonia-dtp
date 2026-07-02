@@ -1,0 +1,19 @@
+# Dépendances
+node_modules/
+
+# Vercel
+.vercel/
+
+# Secrets — ne JAMAIS committer de clés privées
+.env
+.env.*
+*.pem
+
+# Supabase (fichiers locaux)
+supabase/.branches/
+supabase/.temp/
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Koinonia — Publications</title>
+<meta name="theme-color" content="#120e22">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#120e22;--bg2:#0c0918;--surface:#1d1736;--surface2:#241d44;--line:rgba(232,184,95,.14);--line-soft:rgba(255,255,255,.06);
+    --gold:#e8b85f;--gold2:#cf9a3d;--violet:#9b7fd4;--ink:#f5efe4;--muted:#a193ba;--green:#6bbf8a;--coral:#e58163;--blue:#7fa8d4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);min-height:100vh;background:radial-gradient(1200px 700px at 80% -10%,rgba(155,127,212,.18),transparent 60%),radial-gradient(900px 600px at 0% 110%,rgba(232,184,95,.10),transparent 55%),linear-gradient(160deg,var(--bg),var(--bg2));-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 90px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  .hello h2{font-family:'Fraunces';font-weight:600;font-size:25px}.hello p{color:var(--muted);font-size:13px;margin-top:3px}
+  .src{display:flex;align-items:center;gap:10px}
+  .badge{font-size:10.5px;font-weight:700;padding:6px 11px;border-radius:20px;border:1px solid var(--line-soft)}
+  .badge.live{color:var(--green);background:rgba(107,191,138,.12)}.badge.demo{color:var(--violet);background:rgba(155,127,212,.12)}
+  .btn{font-family:inherit;font-weight:600;border-radius:11px;cursor:pointer;border:1px solid transparent;font-size:13px;padding:11px 16px}
+  .btn-gold{background:linear-gradient(120deg,var(--gold),var(--gold2));color:#241803}
+  .btn-ghost{background:transparent;border:1px solid var(--line-soft);color:var(--ink)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{font-size:12px;font-weight:600;border:1px solid var(--line-soft);background:var(--surface);color:var(--muted);border-radius:20px;padding:8px 13px;cursor:pointer}
+  .chip.on{background:linear-gradient(120deg,rgba(232,184,95,.18),rgba(155,127,212,.12));color:var(--ink);border-color:var(--line)}
+  .list{display:grid;gap:13px}
+  .pub{background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line-soft);border-radius:16px;padding:16px;position:relative}
+  .pub .k{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:8px;margin-bottom:9px}
+  .pub h3{font-family:'Fraunces';font-weight:600;font-size:18px;margin-bottom:5px;padding-right:60px}
+  .pub .bd{font-size:13.5px;color:#cfc4e0;line-height:1.5;white-space:pre-wrap}
+  .pub .mt{font-size:11px;color:var(--muted);margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pub a.media{color:var(--gold);font-weight:600}
+  .pub .dedit{position:absolute;top:13px;right:13px;background:rgba(255,255,255,.05);border:1px solid var(--line-soft);color:var(--muted);border-radius:8px;width:30px;height:30px;cursor:pointer}
+  .pub .dedit:hover{color:var(--gold)}
+  .pub.off{opacity:.5}
+  .empty{text-align:center;color:var(--muted);padding:50px 0;font-size:14px}
+  .lock{max-width:420px;margin:60px auto;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:34px}
+  .lock h3{font-family:'Fraunces';font-size:22px;margin-bottom:8px}.lock p{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .ov{display:none;position:fixed;inset:0;background:rgba(8,6,16,.82);z-index:120;align-items:center;justify-content:center;padding:18px}
+  .ov.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;max-width:480px;width:100%;padding:22px;max-height:94vh;overflow:auto}
+  .modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.modal-h h3{font-family:'Fraunces';font-size:19px}
+  .x{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer}
+  .fld{margin-bottom:12px}.fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .fld input,.fld textarea,.fld select{width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line-soft);border-radius:10px;padding:11px;outline:none;resize:vertical}
+  .fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--gold)}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin:6px 0 12px}
+  .toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-size:13px;opacity:0;pointer-events:none;transition:.3s;z-index:130}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(18,14,34,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line-soft);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;color:var(--muted);background:none;border:none;padding:9px 2px;font-family:inherit;cursor:pointer;text-decoration:none}
+  .tabbar .tab .i{font-size:17px}.tabbar .tab.active{color:var(--gold)}
+  .moresheet{display:none;position:fixed;inset:0;background:rgba(8,6,16,.6);z-index:70;align-items:flex-end}
+  .moresheet.show{display:flex}
+  .moreinner{background:var(--surface);width:100%;border-radius:18px 18px 0 0;padding:14px;display:grid;gap:2px}
+  .moreinner a{padding:13px;border-radius:11px;font-size:14px}.moreinner a:hover{background:var(--surface2)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="hello"><h2>Publications</h2><p>Actualités, activités, vidéos, messages & audio</p></div>
+      <div class="src"><span id="srcBadge" class="badge demo">● DÉMO</span>
+        <div id="userbox" style="display:flex;align-items:center;gap:6px"></div></div>
+    </div>
+    <div id="content">
+      <div style="margin-bottom:14px"><button class="btn btn-gold" onclick="newPub()">+ Nouvelle publication</button></div>
+      <div class="chips" id="chips"></div>
+      <div class="list" id="list"></div>
+    </div>
+  </div>
+
+  <div class="ov" id="ov"><div class="modal">
+    <div class="modal-h"><h3 id="p_title">Nouvelle publication</h3><button class="x" onclick="closeM()">×</button></div>
+    <div class="fld"><label>Type</label>
+      <select id="p_kind">
+        <option value="actualite">📰 Actualité</option>
+        <option value="activite">📅 Activité</option>
+        <option value="video">▶ Vidéo</option>
+        <option value="message">🕊 Message réconfortant</option>
+        <option value="audio">🎧 Audio</option>
+      </select></div>
+    <div class="fld"><label>Titre</label><input id="p_titre" placeholder="Titre de la publication"></div>
+    <div class="fld"><label>Contenu / message</label><textarea id="p_body" rows="5" placeholder="Écrivez ici…"></textarea></div>
+    <div class="fld"><label>Lien média (YouTube, audio…) — optionnel</label><input id="p_media" placeholder="https://…"></div>
+    <div class="fld"><label>Image / vignette (URL) — optionnel</label><input id="p_image" placeholder="https://…"></div>
+    <label class="chk"><input type="checkbox" id="p_pub" checked> Publié (visible par tous)</label>
+    <label class="chk"><input type="checkbox" id="p_notify" checked> Envoyer une notification aux téléphones</label>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
+      <button class="btn btn-gold" onclick="savePub()">Publier</button>
+      <button id="p_disable" class="btn btn-ghost" onclick="disablePub()" style="display:none;color:var(--coral)">Supprimer</button>
+    </div>
+  </div></div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+window.KOINONIA=window.KOINONIA||{CHURCH_ID:'11111111-1111-1111-1111-111111111111',isConfigured(){return false},client(){return null}};
+const K=window.KOINONIA, sb=K.client();
+let LIVE=K.isConfigured(),SESSION=false,ROLE='membre',UID=null;
+const KINDS={actualite:['Actualité','#7fa8d4'],activite:['Activité','#6bbf8a'],video:['Vidéo','#e58163'],message:['Message','#9b7fd4'],audio:['Audio','#e8b85f']};
+let PUBS=[],FILT='all',EDIT=-1;
+
+function logout(){const c=K.isConfigured()&&K.client();Promise.resolve(c?c.auth.signOut():null).then(()=>location.href='index.html');}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3200);}
+function esc(s){return(s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function setBadge(){const b=document.getElementById('srcBadge');if(LIVE&&SESSION){b.className='badge live';b.textContent='● DONNÉES LIVE';}else{b.className='badge demo';b.textContent='● DÉMO';}}
+
+const DEMO=[
+  {id:'d1',kind:'actualite',title:'Reprise des cultes de réveil',body:'Dès dimanche prochain, un temps de réveil précédera le culte à 7h30.',is_published:true,published_at:'aujourd\'hui'},
+  {id:'d2',kind:'message',title:'Un mot pour ton cœur',body:'« L\'Éternel est près de ceux qui ont le cœur brisé. » Garde courage, Il combat pour toi.',is_published:true,published_at:'hier'},
+  {id:'d3',kind:'video',title:'Louange — Dans Ta Présence',body:'Revivez le moment de louange de dimanche.',media_url:'https://www.youtube.com/@mikekalambayofficiel4172',is_published:true,published_at:'il y a 3j'}
+];
+
+async function init(){
+  if(!LIVE){ render(); return; }
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){ location.replace('index.html?login=1'); return; }
+  SESSION=true; UID=session.user.id;
+  document.getElementById('userbox').innerHTML='<span style="font-size:11.5px;color:var(--muted)">'+esc(session.user.email)+'</span>'+
+    '<button onclick="logout()" style="margin-left:6px;font-family:inherit;font-size:12px;font-weight:600;border:1px solid var(--line-soft);border-radius:9px;padding:7px 11px;background:var(--surface);color:var(--ink);cursor:pointer">Déconnexion</button>';
+  try{const {data:p}=await sb.from('profiles').select('role').eq('id',session.user.id).single(); ROLE=p?.role||'membre';}catch(e){}
+  if(!['pasteur_titulaire','pasteur_site','admin','saisie'].includes(ROLE)){
+    document.getElementById('content').innerHTML='<div class="lock"><h3>Accès réservé</h3><p>La gestion des publications est réservée aux pasteurs, à l\'administration et aux agents de saisie.</p><a class="btn btn-gold" href="dashboard.html">Retour au tableau de bord</a></div>';
+    setBadge(); return;
+  }
+  await load(); render();
+}
+async function load(){
+  if(LIVE&&SESSION){try{
+    const {data}=await sb.from('publications').select('*').eq('church_id',K.CHURCH_ID).order('published_at',{ascending:false});
+    if(data) PUBS=data;
+  }catch(e){console.warn(e);}}
+  if(!PUBS.length) PUBS=DEMO.slice();
+}
+function renderChips(){
+  const defs=[['all','Tout'],['actualite','📰 Actualités'],['activite','📅 Activités'],['video','▶ Vidéos'],['message','🕊 Messages'],['audio','🎧 Audio']];
+  document.getElementById('chips').innerHTML=defs.map(d=>`<button class="chip ${FILT===d[0]?'on':''}" onclick="setFilt('${d[0]}')">${d[1]}</button>`).join('');
+}
+function setFilt(f){FILT=f;render();}
+function render(){
+  setBadge();renderChips();
+  const rows=PUBS.filter(p=>FILT==='all'||p.kind===FILT);
+  const L=document.getElementById('list');
+  if(!rows.length){L.innerHTML='<div class="empty">Aucune publication. Créez la première ✦</div>';return;}
+  L.innerHTML=rows.map((p,gi)=>{
+    const i=PUBS.indexOf(p); const k=KINDS[p.kind]||['',''];
+    const date=(p.published_at||'').toString().slice(0,10);
+    return `<div class="pub ${p.is_published?'':'off'}">
+      <button class="dedit" onclick="editPub(${i})">✎</button>
+      <span class="k" style="background:${k[1]}22;color:${k[1]}">${k[0]}</span>
+      <h3>${esc(p.title)}</h3>
+      ${p.body?`<div class="bd">${esc(p.body)}</div>`:''}
+      <div class="mt">${p.media_url?`<a class="media" href="${esc(p.media_url)}" target="_blank" rel="noopener">▶ Ouvrir le média</a>`:''}<span>${esc(date)}</span>${p.is_published?'':'<span style="color:var(--coral)">Brouillon</span>'}</div>
+    </div>`;}).join('');
+}
+function newPub(){EDIT=-1;document.getElementById('p_title').textContent='Nouvelle publication';p_kind.value='actualite';p_titre.value='';p_body.value='';p_media.value='';p_image.value='';p_pub.checked=true;p_notify.checked=true;document.getElementById('p_disable').style.display='none';document.getElementById('ov').classList.add('show');}
+function editPub(i){EDIT=i;const p=PUBS[i];document.getElementById('p_title').textContent='Modifier la publication';p_kind.value=p.kind;p_titre.value=p.title||'';p_body.value=p.body||'';p_media.value=p.media_url||'';p_image.value=p.image_url||'';p_pub.checked=!!p.is_published;p_notify.checked=false;document.getElementById('p_disable').style.display='inline-block';document.getElementById('ov').classList.add('show');}
+function closeM(){document.getElementById('ov').classList.remove('show');}
+
+async function savePub(){
+  const title=p_titre.value.trim(); if(!title){alert('Le titre est requis.');return;}
+  const row={kind:p_kind.value,title,body:p_body.value.trim()||null,media_url:p_media.value.trim()||null,image_url:p_image.value.trim()||null,is_published:p_pub.checked};
+  try{
+    if(EDIT<0){
+      if(LIVE&&SESSION){
+        const {error}=await sb.from('publications').insert({...row,church_id:K.CHURCH_ID,created_by:UID});
+        if(error) throw error;
+        await load();
+      } else {
+        PUBS.unshift({...row,id:'demo-'+Date.now(),published_at:'maintenant'});
+      }
+    } else {
+      const p=PUBS[EDIT];
+      if(LIVE&&SESSION&&!String(p.id).startsWith('demo')){
+        const {error}=await sb.from('publications').update(row).eq('id',p.id);
+        if(error) throw error;
+        await load();
+      } else {
+        Object.assign(p,row);
+      }
+    }
+  }catch(e){
+    console.error('savePub', e);
+    alert("Impossible d'enregistrer la publication.\n\n"+(e.message||JSON.stringify(e))+"\n\nVérifie que le SQL « 04b_features.sql » a bien été exécuté dans Supabase.");
+    return;
+  }
+  if(p_pub.checked && p_notify.checked) notifyAll(row);
+  closeM();render();toast('Publication enregistrée ✓');
+}
+async function disablePub(){
+  if(EDIT<0)return;const p=PUBS[EDIT];
+  if(!confirm('Supprimer « '+p.title+' » ?'))return;
+  if(LIVE&&SESSION&&!String(p.id).startsWith('demo')){try{const{error}=await sb.from('publications').delete().eq('id',p.id);if(error)throw error;}catch(e){console.error(e);alert('Suppression impossible : '+(e.message||JSON.stringify(e)));return;}}
+  PUBS.splice(EDIT,1);closeM();render();toast('Publication supprimée');
+}
+
+/* Notification push — nécessite la fonction Edge "send-push" déployée (voir db/PUSH.md) */
+async function notifyAll(pub){
+  if(!(LIVE&&SESSION)){toast('Notification simulée (mode démo)');return;}
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    const url=(window.KOINONIA.SUPABASE_URL||'').replace(/\/$/,'')+'/functions/v1/send-push';
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({title:pub.title,body:(pub.body||'').slice(0,120),kind:pub.kind})});
+    if(r.ok) toast('Notification envoyée 🔔');
+    else toast('Publié ✓ (notifications non encore activées)');
+  }catch(e){ toast('Publié ✓ (notifications non encore activées)'); }
+}
+
+init();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+<nav class="tabbar">
+  <a class="tab" href="dashboard.html"><span class="i">✦</span><span>Tableau</span></a>
+  <a class="tab" href="members.html"><span class="i">❖</span><span>Membres</span></a>
+  <a class="tab" href="souls.html"><span class="i">✚</span><span>Âmes</span></a>
+  <a class="tab active" href="publications.html"><span class="i">📰</span><span>Publications</span></a>
+  <button class="tab" onclick="openMore()"><span class="i">☰</span><span>Plus</span></button>
+</nav>
+<div class="moresheet" id="moreSheet" onclick="if(event.target===this)closeMore()">
+  <div class="moreinner">
+    <a href="dashboard.html">✦ Tableau de bord</a>
+    <a href="members.html">❖ Membres & cartes</a>
+    <a href="souls.html">✚ Suivi des âmes</a>
+    <a href="departments.html">⬡ Départements</a>
+    <a href="mission.html">◎ Mission</a>
+    <a href="publications.html">📰 Publications</a>
+    <a href="requests.html" id="moreReq" style="display:none">✉ Demandes</a>
+    <a href="index.html">🌐 Page publique</a>
+    <a href="diagnostic.html">🔧 Diagnostic</a>
+    <a href="#" onclick="logout();return false;">⎋ Déconnexion</a>
+  </div>
+</div>
+<script>function openMore(){document.getElementById('moreSheet').classList.add('show')}function closeMore(){document.getElementById('moreSheet').classList.remove('show')}</script>
+</body>
+</html>
