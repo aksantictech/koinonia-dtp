@@ -1,10 +1,13 @@
-// KOINONIA — Fonction Edge "send-push"
+// KOINONIA — Fonction Edge "send-push" (v2)
 // Envoie une notification push à tous les abonnés (table push_subscriptions).
-// Déploiement : voir db/PUSH.md
 //
-// Variables d'environnement requises (supabase secrets set ...) :
-//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (ex: mailto:contact@eglise.org)
-//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (injectées automatiquement par Supabase)
+// ⚠️ IMPORTANT : sur les projets migrés au nouveau système de clés Supabase,
+// il FAUT désactiver "Verify JWT" pour cette fonction (Dashboard → Edge
+// Functions → send-push → Details → Verify JWT = OFF). L'authentification est
+// gérée ici dans le code (on valide l'utilisateur et son rôle).
+//
+// Secrets requis : VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT
+// (SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sont fournis automatiquement)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
@@ -15,27 +18,48 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function json(obj: unknown, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   try {
-    const { title, body, kind, url } = await req.json();
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
 
+    // --- Authentification de l'appelant (à la place de verify_jwt) ---
+    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!token) return json({ ok: false, error: "Jeton manquant" }, 401);
+
+    const { data: { user }, error: uerr } = await admin.auth.getUser(token);
+    if (uerr || !user) return json({ ok: false, error: "Utilisateur non authentifié" }, 401);
+
+    const { data: prof } = await admin.from("profiles").select("role").eq("id", user.id).single();
+    const role = prof?.role;
+    if (!["pasteur_titulaire", "pasteur_site", "admin", "saisie"].includes(role)) {
+      return json({ ok: false, error: "Rôle non autorisé : " + role }, 403);
+    }
+
+    // --- VAPID ---
     webpush.setVapidDetails(
       Deno.env.get("VAPID_SUBJECT") ?? "mailto:contact@example.org",
       Deno.env.get("VAPID_PUBLIC_KEY")!,
       Deno.env.get("VAPID_PRIVATE_KEY")!,
     );
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const { title, body, kind, url } = await req.json();
 
-    const { data: subs, error } = await supabase
+    const { data: subs, error: serr } = await admin
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth");
-    if (error) throw error;
+    if (serr) throw serr;
 
     const payload = JSON.stringify({
       title: title ?? "Dans Ta Présence Church",
@@ -53,21 +77,16 @@ Deno.serve(async (req) => {
         );
         sent++;
       } catch (e) {
-        // 404/410 = abonnement expiré → on le supprime
-        if (e?.statusCode === 404 || e?.statusCode === 410) {
-          await supabase.from("push_subscriptions").delete().eq("id", s.id);
+        const code = (e as { statusCode?: number })?.statusCode;
+        if (code === 404 || code === 410) {
+          await admin.from("push_subscriptions").delete().eq("id", s.id);
           removed++;
         }
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, sent, removed }), {
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return json({ ok: true, sent, removed, subscribers: (subs ?? []).length });
   } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
-      status: 500,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return json({ ok: false, error: String(e) }, 500);
   }
 });

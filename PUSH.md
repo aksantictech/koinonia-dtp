@@ -50,3 +50,10 @@ Si ce n'est pas encore fait, exécute d'abord 04a puis 04b dans le SQL Editor.
 - Voir les logs : supabase functions logs send-push
 - iPhone : l'app doit être installée sur l'écran d'accueil.
 - Les abonnements expirés (404/410) sont nettoyés automatiquement.
+
+## ⚠️ Projets migrés au nouveau système de clés (2026)
+Si l'appel à la fonction renvoie **401 "Invalid credentials"** : c'est le contrôle
+"Verify JWT" de la plateforme qui rejette l'appel avant la fonction.
+Correctif : Dashboard → Edge Functions → send-push → **Details → Verify JWT = OFF**,
+puis (re)déployer la version v2 de la fonction (elle gère l'auth dans le code :
+elle valide l'utilisateur et vérifie qu'il est pasteur / admin / saisie).
