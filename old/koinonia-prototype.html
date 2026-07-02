@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOINONIA — Dans Ta Présence Church</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#120e22;
+    --bg-2:#0c0918;
+    --surface:#1d1736;
+    --surface-2:#241d44;
+    --line:rgba(232,184,95,.14);
+    --line-soft:rgba(255,255,255,.06);
+    --gold:#e8b85f;
+    --gold-deep:#cf9a3d;
+    --violet:#9b7fd4;
+    --ink:#f5efe4;
+    --muted:#a193ba;
+    --muted-2:#76699112;
+    --green:#6bbf8a;
+    --coral:#e58163;
+    --blue:#7fa8d4;
+    --radius:18px;
+    --shadow:0 24px 60px -28px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(155,127,212,.18), transparent 60%),
+      radial-gradient(900px 600px at 0% 110%, rgba(232,184,95,.10), transparent 55%),
+      linear-gradient(160deg,var(--bg),var(--bg-2));
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+  /* ---------- Sidebar ---------- */
+  .side{
+    border-right:1px solid var(--line-soft);
+    padding:26px 18px;
+    display:flex;flex-direction:column;gap:8px;
+    position:sticky;top:0;height:100vh;
+    background:linear-gradient(180deg,rgba(29,23,54,.5),rgba(12,9,24,.2));
+    backdrop-filter:blur(6px);
+  }
+  .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 22px}
+  .crest{
+    width:42px;height:42px;border-radius:12px;flex:none;
+    background:radial-gradient(circle at 35% 30%,var(--gold),var(--gold-deep));
+    display:grid;place-items:center;color:#2a1f06;font-family:'Fraunces';font-weight:700;font-size:22px;
+    box-shadow:0 8px 20px -8px rgba(232,184,95,.6);
+  }
+  .brand h1{font-family:'Fraunces';font-weight:600;font-size:19px;letter-spacing:.3px;line-height:1}
+  .brand span{font-size:10.5px;color:var(--muted);letter-spacing:2.4px;text-transform:uppercase}
+  .navlabel{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:14px 10px 6px;opacity:.7}
+  .nav{
+    display:flex;align-items:center;gap:13px;
+    padding:11px 12px;border-radius:13px;cursor:pointer;
+    color:var(--muted);font-size:13.5px;font-weight:500;
+    border:1px solid transparent;transition:.18s;
+  }
+  .nav .ic{width:20px;text-align:center;font-size:15px;opacity:.85}
+  .nav:hover{background:var(--muted-2);color:var(--ink)}
+  .nav.active{
+    background:linear-gradient(100deg,rgba(232,184,95,.16),rgba(155,127,212,.10));
+    color:var(--ink);border-color:var(--line);
+  }
+  .nav.active .ic{opacity:1}
+  .nav small{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:1px}
+  .side-foot{margin-top:auto;padding:14px 10px 0;border-top:1px solid var(--line-soft);font-size:11px;color:var(--muted)}
+
+  /* ---------- Main ---------- */
+  .main{padding:26px 30px 60px;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px;flex-wrap:wrap}
+  .hello h2{font-family:'Fraunces';font-weight:600;font-size:27px;letter-spacing:.2px}
+  .hello p{color:var(--muted);font-size:13px;margin-top:3px}
+  .hello b{color:var(--gold);font-weight:600}
+  .top-right{display:flex;align-items:center;gap:14px}
+  .langs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:3px}
+  .langs button{
+    border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;
+    padding:5px 8px;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:.5px;
+  }
+  .langs button.on{background:rgba(232,184,95,.16);color:var(--gold)}
+  .pastor{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-soft);padding:6px 12px 6px 6px;border-radius:40px}
+  .pastor .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--gold));display:grid;place-items:center;font-weight:700;font-size:13px;color:#1a1430}
+  .pastor div{line-height:1.15}
+  .pastor .n{font-size:12.5px;font-weight:600}
+  .pastor .r{font-size:10px;color:var(--muted)}
+
+  .view{display:none;animation:rise .4s ease}
+  .view.show{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  .kpi{
+    background:linear-gradient(160deg,var(--surface),var(--surface-2));
+    border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px 18px 16px;
+    position:relative;overflow:hidden;box-shadow:var(--shadow);
+  }
+  .kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(232,184,95,.10),transparent 70%)}
+  .kpi .lab{font-size:11.5px;color:var(--muted);letter-spacing:.4px;display:flex;align-items:center;gap:7px}
+  .kpi .lab .dot{width:7px;height:7px;border-radius:50%}
+  .kpi .val{font-family:'Fraunces';font-size:33px;font-weight:600;margin-top:8px;letter-spacing:.5px}
+  .kpi .trend{font-size:11.5px;margin-top:5px;display:flex;align-items:center;gap:5px}
+  .up{color:var(--green)} .flat{color:var(--muted)}
+
+  .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin-bottom:20px}
+  .card{
+    background:linear-gradient(165deg,var(--surface),rgba(36,29,68,.7));
+    border:1px solid var(--line-soft);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);
+  }
+  .card h3{font-family:'Fraunces';font-weight:600;font-size:16.5px;display:flex;align-items:center;gap:9px}
+  .card h3 .tag{margin-left:auto;font-family:'Inter';font-size:10px;font-weight:600;color:var(--gold);background:rgba(232,184,95,.12);padding:3px 9px;border-radius:20px;letter-spacing:.5px}
+  .sub{color:var(--muted);font-size:12px;margin-top:3px;margin-bottom:16px}
+
+  /* Soul journey (signature) */
+  .journey{display:flex;align-items:stretch;gap:0;margin-top:6px}
+  .stage{flex:1;position:relative;text-align:center;padding:0 4px}
+  .stage .num{font-family:'Fraunces';font-size:26px;font-weight:600;line-height:1}
+  .stage .nm{font-size:10.5px;color:var(--muted);margin-top:6px;letter-spacing:.3px}
+  .stage .bar{height:6px;border-radius:6px;margin:14px 0 0;background:linear-gradient(90deg,var(--gold),var(--violet));opacity:.85}
+  .stage .node{width:14px;height:14px;border-radius:50%;background:var(--gold);margin:10px auto 0;box-shadow:0 0 0 4px rgba(232,184,95,.15);position:relative;z-index:2}
+  .track{position:relative;margin-top:18px}
+  .track .line{position:absolute;top:6px;left:8%;right:8%;height:2px;background:linear-gradient(90deg,var(--gold),var(--violet));opacity:.4}
+  .track .nodes{display:flex;justify-content:space-between;position:relative}
+  .track .nd{width:14px;height:14px;border-radius:50%;background:var(--surface-2);border:2px solid var(--gold)}
+  .track .nd.fade{border-color:var(--violet);opacity:.7}
+
+  /* Vision */
+  .vision-row{display:flex;flex-direction:column;gap:18px}
+  .vrow .vtop{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+  .vrow .vtop b{font-weight:600}
+  .vrow .vtop span{color:var(--muted);font-size:11.5px}
+  .vbar{height:9px;border-radius:9px;background:rgba(255,255,255,.06);margin-top:8px;overflow:hidden}
+  .vfill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--gold),var(--gold-deep))}
+  .vfill.v2{background:linear-gradient(90deg,var(--violet),#c9aef0)}
+  .vfill.v3{background:linear-gradient(90deg,var(--green),#9fe3bb)}
+
+  /* Chart */
+  .chartwrap{margin-top:6px}
+  .legend{display:flex;gap:18px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+  /* Alerts */
+  .alert{
+    display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:13px;
+    background:var(--muted-2);border:1px solid var(--line-soft);margin-bottom:10px;
+  }
+  .alert .ai{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:15px}
+  .alert .ai.a-warn{background:rgba(229,129,99,.16);color:var(--coral)}
+  .alert .ai.a-pray{background:rgba(155,127,212,.16);color:var(--violet)}
+  .alert .ai.a-ok{background:rgba(107,191,138,.16);color:var(--green)}
+  .alert .t{font-size:13px;font-weight:600}
+  .alert .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .alert .act{margin-left:auto;font-size:11px;color:var(--gold);border:1px solid var(--line);background:transparent;padding:5px 11px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;align-self:center}
+  .alert .act:hover{background:rgba(232,184,95,.1)}
+
+  /* Agenda */
+  .ag{display:flex;gap:14px;padding:11px 4px;border-bottom:1px solid var(--line-soft)}
+  .ag:last-child{border-bottom:none}
+  .ag .tm{font-family:'Fraunces';font-size:14px;color:var(--gold);width:54px;flex:none;font-weight:600}
+  .ag .ti{font-size:13px;font-weight:600}
+  .ag .ts{font-size:11.5px;color:var(--muted);margin-top:1px}
+
+  /* generic module placeholder content */
+  .mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  .feat{display:flex;gap:13px;padding:16px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft)}
+  .feat .fi{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:17px;background:rgba(232,184,95,.12);color:var(--gold)}
+  .feat .ft{font-size:13.5px;font-weight:600}
+  .feat .fd{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+
+  /* member card sample */
+  .mcard{
+    width:330px;border-radius:18px;padding:20px;color:#1a1430;
+    background:linear-gradient(135deg,#e8b85f,#cf9a3d 70%,#9b7fd4);
+    position:relative;overflow:hidden;box-shadow:var(--shadow)
+  }
+  .mcard::before{content:"";position:absolute;inset:0;background:radial-gradient(300px 120px at 90% -20%,rgba(255,255,255,.35),transparent)}
+  .mcard .mc-top{display:flex;justify-content:space-between;align-items:center;position:relative}
+  .mcard .mc-top b{font-family:'Fraunces';font-size:15px}
+  .mcard .mc-top span{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;opacity:.7}
+  .mcard .mc-body{display:flex;align-items:flex-end;justify-content:space-between;margin-top:30px;position:relative}
+  .mcard .mc-name{font-family:'Fraunces';font-size:22px;font-weight:700;line-height:1.05}
+  .mcard .mc-role{font-size:11px;margin-top:4px;font-weight:600;opacity:.8}
+  .mcard .mc-id{font-size:10px;margin-top:8px;letter-spacing:1px;opacity:.7}
+  .qr{width:64px;height:64px;border-radius:9px;background:#1a1430;padding:6px;flex:none}
+  .qr svg{width:100%;height:100%}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;background:rgba(232,184,95,.12);color:var(--gold);border:1px solid var(--line)}
+
+  @media(max-width:980px){
+    .app{grid-template-columns:1fr}
+    .side{position:fixed;left:-260px;transition:.3s;z-index:50}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:1fr}
+    .mod-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="brand">
+      <div class="crest">K</div>
+      <div>
+        <h1>Koinonia</h1>
+        <span>Dans Ta Présence</span>
+      </div>
+    </div>
+    <div class="navlabel">Plateforme</div>
+    <div class="nav active" data-v="m1"><span class="ic">✦</span><div>Pasteur titulaire<small>Tableau de bord</small></div></div>
+    <div class="nav" data-v="m2"><span class="ic">❖</span><div>Membres<small>Cartes & profils</small></div></div>
+    <div class="nav" data-v="m3"><span class="ic">✚</span><div>Suivi des âmes<small>Discipulat</small></div></div>
+    <div class="nav" data-v="m4"><span class="ic">⬡</span><div>Départements<small>Ouvriers</small></div></div>
+    <div class="nav" data-v="m5"><span class="ic">◎</span><div>Mission<small>Implantation</small></div></div>
+    <div class="side-foot">Vision : gagner des âmes · former des disciples · implanter des églises dans les nations.</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="hello">
+        <h2 id="greet">Présence du Royaume</h2>
+        <p>Vue pastorale du <b>dimanche 28 juin 2026</b> · Site mère — Kinshasa</p>
+      </div>
+      <div class="top-right">
+        <div class="langs">
+          <button class="on">FR</button><button>LN</button><button>TS</button><button>EN</button>
+        </div>
+        <div class="pastor">
+          <div class="av">MK</div>
+          <div><div class="n">Pst. Mike Kalambay</div><div class="r">Pasteur titulaire</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== MODULE 1 ===================== -->
+    <section class="view show" id="m1">
+      <div class="kpis">
+        <div class="kpi"><div class="lab"><span class="dot" style="background:var(--gold)"></span>Membres actifs</div><div class="val">4 820</div><div class="trend up">▲ +6,4% ce trimestre</div></div>
+        <div class="kpi"><div class="lab"><span class="dot" style="background:var(--violet)"></span>Nouveaux convertis</div><div class="val">312</div><div class="trend up">▲ +48 cette semaine</div></div>
+        <div class="kpi"><div class="lab"><span class="dot" style="background:var(--green)"></span>Ouvriers</div><div class="val">643</div><div class="trend up">▲ +12 ce mois</div></div>
+        <div class="kpi"><div class="lab"><span class="dot" style="background:var(--blue)"></span>Départements</div><div class="val">9</div><div class="trend flat">— tous actifs</div></div>
+      </div>
+
+      <div class="grid">
+        <!-- Signature: parcours de l'âme -->
+        <div class="card">
+          <h3>✦ Parcours de l'âme<span class="tag">CŒUR DE LA VISION</span></h3>
+          <p class="sub">De la première visite à l'envoi : où se trouve chaque âme dans son cheminement.</p>
+          <div class="journey">
+            <div class="stage"><div class="num">512</div><div class="nm">Visiteurs</div></div>
+            <div class="stage"><div class="num">312</div><div class="nm">Convertis</div></div>
+            <div class="stage"><div class="num">198</div><div class="nm">Baptisés</div></div>
+            <div class="stage"><div class="num">740</div><div class="nm">Disciples</div></div>
+            <div class="stage"><div class="num">643</div><div class="nm">Ouvriers</div></div>
+            <div class="stage"><div class="num">86</div><div class="nm">Leaders</div></div>
+          </div>
+          <div class="track">
+            <div class="line"></div>
+            <div class="nodes">
+              <div class="nd"></div><div class="nd"></div><div class="nd"></div>
+              <div class="nd"></div><div class="nd"></div><div class="nd fade"></div>
+            </div>
+          </div>
+          <div style="margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6">
+            <span class="pill">61%</span> &nbsp;des nouveaux convertis ont déjà commencé le parcours d'intégration. Objectif : 0 âme perdue de vue.
+          </div>
+        </div>
+
+        <!-- Vision tracker -->
+        <div class="card">
+          <h3>◎ Progression de la vision</h3>
+          <p class="sub">Objectifs annuels 2026</p>
+          <div class="vision-row">
+            <div class="vrow">
+              <div class="vtop"><b>Âmes gagnées</b><span>3 240 / 5 000</span></div>
+              <div class="vbar"><div class="vfill" style="width:65%"></div></div>
+            </div>
+            <div class="vrow">
+              <div class="vtop"><b>Disciples formés</b><span>740 / 1 200</span></div>
+              <div class="vbar"><div class="vfill v2" style="width:62%"></div></div>
+            </div>
+            <div class="vrow">
+              <div class="vtop"><b>Églises implantées</b><span>7 / 12 nations</span></div>
+              <div class="vbar"><div class="vfill v3" style="width:58%"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--muted);line-height:1.6">
+            Prochain jalon : <b style="color:var(--ink)">implantation Lubumbashi</b> — campagne lancée, 1ère cellule active.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Growth chart -->
+        <div class="card">
+          <h3>↗ Courbe de croissance</h3>
+          <p class="sub">Présence moyenne aux cultes & nouveaux convertis — 6 derniers mois</p>
+          <div class="chartwrap">
+            <svg viewBox="0 0 560 200" width="100%" height="200" preserveAspectRatio="none" aria-label="Courbe de croissance">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="rgba(232,184,95,.45)"/>
+                  <stop offset="100%" stop-color="rgba(232,184,95,0)"/>
+                </linearGradient>
+                <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="rgba(155,127,212,.35)"/>
+                  <stop offset="100%" stop-color="rgba(155,127,212,0)"/>
+                </linearGradient>
+              </defs>
+              <!-- grid -->
+              <g stroke="rgba(255,255,255,.05)" stroke-width="1">
+                <line x1="0" y1="50" x2="560" y2="50"/>
+                <line x1="0" y1="100" x2="560" y2="100"/>
+                <line x1="0" y1="150" x2="560" y2="150"/>
+              </g>
+              <!-- presence area -->
+              <path d="M0,150 L93,138 L186,120 L279,108 L372,82 L465,66 L560,44 L560,200 L0,200 Z" fill="url(#g1)"/>
+              <path d="M0,150 L93,138 L186,120 L279,108 L372,82 L465,66 L560,44" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+              <!-- converts area -->
+              <path d="M0,178 L93,172 L186,168 L279,158 L372,150 L465,140 L560,128 L560,200 L0,200 Z" fill="url(#g2)"/>
+              <path d="M0,178 L93,172 L186,168 L279,158 L372,150 L465,140 L560,128" fill="none" stroke="var(--violet)" stroke-width="2.5"/>
+              <g fill="var(--gold)"><circle cx="560" cy="44" r="4"/></g>
+              <g fill="var(--violet)"><circle cx="560" cy="128" r="4"/></g>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:6px">
+              <span>Jan</span><span>Fév</span><span>Mar</span><span>Avr</span><span>Mai</span><span>Juin</span>
+            </div>
+            <div class="legend">
+              <span><i style="background:var(--gold)"></i>Présence moyenne</span>
+              <span><i style="background:var(--violet)"></i>Nouveaux convertis</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="card">
+          <h3>⚠ Centre d'alertes</h3>
+          <p class="sub">Âmes nécessitant un suivi pastoral</p>
+          <div class="alert">
+            <div class="ai a-warn">!</div>
+            <div><div class="t">9 convertis sans contact depuis 7 jours</div><div class="d">Risque de décrochage — conseillers notifiés</div></div>
+            <button class="act">Assigner</button>
+          </div>
+          <div class="alert">
+            <div class="ai a-pray">✚</div>
+            <div><div class="t">23 demandes de prière en attente</div><div class="d">Dont 4 marquées urgentes</div></div>
+            <button class="act">Voir</button>
+          </div>
+          <div class="alert">
+            <div class="ai a-ok">✓</div>
+            <div><div class="t">14 témoignages à valider</div><div class="d">Pour le culte de dimanche</div></div>
+            <button class="act">Lire</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🕊 Agenda pastoral & file spirituelle</h3>
+        <p class="sub">Aujourd'hui — accompagnements et rendez-vous</p>
+        <div class="ag"><div class="tm">09:00</div><div><div class="ti">Réunion du conseil pastoral</div><div class="ts">Vision implantation — Goma & diaspora</div></div></div>
+        <div class="ag"><div class="tm">11:30</div><div><div class="ti">Entretien d'accompagnement — Famille Tshibasu</div><div class="ts">Suivi spirituel · confidentiel</div></div></div>
+        <div class="ag"><div class="tm">14:00</div><div><div class="ti">Validation des baptêmes</div><div class="ts">42 candidats prêts pour le prochain culte</div></div></div>
+        <div class="ag"><div class="tm">16:00</div><div><div class="ti">Point responsables de départements</div><div class="ts">Évangélisation · Jeunesse · Intercession</div></div></div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 2 ===================== -->
+    <section class="view" id="m2">
+      <div class="grid">
+        <div class="card">
+          <h3>❖ Carte de membre numérique</h3>
+          <p class="sub">Émise avec QR Code — check-in aux cultes par simple scan</p>
+          <div class="mcard">
+            <div class="mc-top"><b>Dans Ta Présence Church</b><span>Membre</span></div>
+            <div class="mc-body">
+              <div>
+                <div class="mc-name">Grâce<br>Mukendi</div>
+                <div class="mc-role">Ouvrière · Dpt. Chorale</div>
+                <div class="mc-id">ID · DTP-2024-00871</div>
+              </div>
+              <div class="qr">
+                <svg viewBox="0 0 100 100" fill="none">
+                  <rect width="100" height="100" fill="#1a1430"/>
+                  <g fill="#e8b85f">
+                    <rect x="8" y="8" width="22" height="22"/><rect x="14" y="14" width="10" height="10" fill="#1a1430"/>
+                    <rect x="70" y="8" width="22" height="22"/><rect x="76" y="14" width="10" height="10" fill="#1a1430"/>
+                    <rect x="8" y="70" width="22" height="22"/><rect x="14" y="76" width="10" height="10" fill="#1a1430"/>
+                    <rect x="40" y="10" width="6" height="6"/><rect x="50" y="10" width="6" height="6"/>
+                    <rect x="40" y="40" width="6" height="6"/><rect x="52" y="42" width="6" height="6"/><rect x="62" y="40" width="6" height="6"/>
+                    <rect x="40" y="52" width="6" height="6"/><rect x="72" y="52" width="6" height="6"/>
+                    <rect x="40" y="70" width="6" height="6"/><rect x="50" y="72" width="6" height="6"/><rect x="62" y="64" width="6" height="6"/>
+                    <rect x="72" y="72" width="6" height="6"/><rect x="84" y="62" width="6" height="6"/><rect x="84" y="84" width="6" height="6"/>
+                    <rect x="62" y="84" width="6" height="6"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Classification configurable</h3>
+          <p class="sub">Chaque statut déclenche un parcours adapté</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <span class="pill" style="background:rgba(127,168,212,.14);color:var(--blue);border-color:rgba(127,168,212,.3)">Visiteur</span>
+            <span class="pill" style="background:rgba(155,127,212,.14);color:var(--violet);border-color:rgba(155,127,212,.3)">Nouveau converti</span>
+            <span class="pill">Membre</span>
+            <span class="pill" style="background:rgba(107,191,138,.14);color:var(--green);border-color:rgba(107,191,138,.3)">Ouvrier</span>
+            <span class="pill" style="background:rgba(107,191,138,.14);color:var(--green);border-color:rgba(107,191,138,.3)">Responsable</span>
+            <span class="pill">Ancien</span>
+            <span class="pill" style="background:rgba(232,184,95,.18);color:var(--gold)">Pasteur</span>
+          </div>
+          <div style="margin-top:18px;font-size:12px;color:var(--muted);line-height:1.7">
+            Profils <b style="color:var(--ink)">individuels et familiaux</b>, regroupement par foyer, historique complet de présence aux cultes et activités, et accès membre via l'application mobile.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 3 ===================== -->
+    <section class="view" id="m3">
+      <div class="card" style="margin-bottom:18px">
+        <h3>✚ Tableau de progression spirituelle</h3>
+        <p class="sub">Attribution automatique d'un conseiller · alertes anti-décrochage</p>
+        <div class="ag"><div class="tm" style="width:40px">●</div><div style="flex:1"><div class="ti">Joël Kabongo — Nouveau converti</div><div class="ts">Conseiller : Sr. Esther · Étape 3/6 (cours nouveaux convertis)</div></div><span class="pill" style="background:rgba(107,191,138,.14);color:var(--green)">En bonne voie</span></div>
+        <div class="ag"><div class="tm" style="width:40px;color:var(--coral)">●</div><div style="flex:1"><div class="ti">Bénédicte Lunda — Visiteuse</div><div class="ts">Sans contact depuis 8 jours · relance auto envoyée</div></div><span class="pill" style="background:rgba(229,129,99,.14);color:var(--coral);border-color:rgba(229,129,99,.3)">À relancer</span></div>
+        <div class="ag"><div class="tm" style="width:40px;color:var(--gold)">●</div><div style="flex:1"><div class="ti">Patrick Ilunga — Disciple</div><div class="ts">Baptême programmé · prêt pour intégration cellule Limete</div></div><span class="pill">Baptême ✓</span></div>
+      </div>
+      <div class="mod-grid">
+        <div class="feat"><div class="fi">✚</div><div><div class="ft">Parcours d'intégration</div><div class="fd">Étapes configurables : accueil → formation → baptême → cellule → service.</div></div></div>
+        <div class="feat"><div class="fi">⌖</div><div><div class="ft">Attribution automatique</div><div class="fd">Conseiller assigné selon langue, proximité, genre et charge.</div></div></div>
+        <div class="feat"><div class="fi">☎</div><div><div class="ft">Journal des interactions</div><div class="fd">Visites, appels, rencontres — notes confidentielles tracées.</div></div></div>
+        <div class="feat"><div class="fi">⬡</div><div><div class="ft">Cellules & groupes de maison</div><div class="fd">Composition, animateurs, présences et suivi de multiplication.</div></div></div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 4 ===================== -->
+    <section class="view" id="m4">
+      <div class="card" style="margin-bottom:18px">
+        <h3>⬡ Départements & ouvriers</h3>
+        <p class="sub">Tableau de bord par responsable · planning des rotations · présences</p>
+      </div>
+      <div class="mod-grid">
+        <div class="feat"><div class="fi">♀</div><div><div class="ft">Femmes</div><div class="fd">124 membres · 6 responsables · réunion mensuelle</div></div></div>
+        <div class="feat"><div class="fi">★</div><div><div class="ft">Jeunesse</div><div class="fd">310 membres · culte jeunes du samedi</div></div></div>
+        <div class="feat"><div class="fi">✚</div><div><div class="ft">Intercession</div><div class="fd">Veille de prière · rotations 24/7</div></div></div>
+        <div class="feat"><div class="fi">◎</div><div><div class="ft">Évangélisation</div><div class="fd">Campagnes terrain · 48 nouvelles âmes ce mois</div></div></div>
+        <div class="feat"><div class="fi">♪</div><div><div class="ft">Chorale</div><div class="fd">Héritage Shekina · répétitions mar. & jeu.</div></div></div>
+        <div class="feat"><div class="fi">✉</div><div><div class="ft">Communication chrétienne</div><div class="fd">Live, réseaux, production des cultes</div></div></div>
+        <div class="feat"><div class="fi">✦</div><div><div class="ft">Accueil</div><div class="fd">Premier contact visiteurs · check-in QR</div></div></div>
+        <div class="feat"><div class="fi">⬡</div><div><div class="ft">+ Département configurable</div><div class="fd">Ajoutez un département sans code, avec son responsable.</div></div></div>
+      </div>
+    </section>
+
+    <!-- ===================== MODULE 5 ===================== -->
+    <section class="view" id="m5">
+      <div class="grid">
+        <div class="card">
+          <h3>◎ Réseau d'implantation</h3>
+          <p class="sub">Églises filles & sites missionnaires à travers les nations</p>
+          <div class="ag"><div class="tm" style="width:30px">◉</div><div style="flex:1"><div class="ti">Kinshasa — Site mère</div><div class="ts">4 820 membres · temple inauguré 2026</div></div><span class="pill">Mère</span></div>
+          <div class="ag"><div class="tm" style="width:30px;color:var(--green)">◉</div><div style="flex:1"><div class="ti">Lubumbashi · Goma · Abidjan</div><div class="ts">Églises filles actives</div></div><span class="pill" style="background:rgba(107,191,138,.14);color:var(--green)">Actives</span></div>
+          <div class="ag"><div class="tm" style="width:30px;color:var(--violet)">◌</div><div style="flex:1"><div class="ti">Paris · Bruxelles (diaspora)</div><div class="ts">Cellules en croissance</div></div><span class="pill" style="background:rgba(155,127,212,.14);color:var(--violet)">En cours</span></div>
+          <div class="ag"><div class="tm" style="width:30px;color:var(--coral)">○</div><div style="flex:1"><div class="ti">5 nations ciblées 2026-2027</div><div class="ts">Cartographie missionnaire</div></div><span class="pill" style="background:rgba(229,129,99,.14);color:var(--coral);border-color:rgba(229,129,99,.3)">Vision</span></div>
+        </div>
+        <div class="card">
+          <h3>Administration & finances</h3>
+          <p class="sub">Transparence · reçus · rôles comptables</p>
+          <div class="mod-grid" style="grid-template-columns:1fr;gap:12px">
+            <div class="feat"><div class="fi">₪</div><div><div class="ft">Dîmes, offrandes & projets</div><div class="fd">Suivi sécurisé avec reçus et tableaux de bord.</div></div></div>
+            <div class="feat"><div class="fi">▤</div><div><div class="ft">Événements & conférences</div><div class="fd">Calendrier général, inscriptions, notifications.</div></div></div>
+            <div class="feat"><div class="fi">✎</div><div><div class="ft">Formations bibliques</div><div class="fd">Parcours, inscriptions, certifications.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const navs = document.querySelectorAll('.nav');
+  const views = document.querySelectorAll('.view');
+  const titles = {
+    m1:'Présence du Royaume', m2:'Membres & identification',
+    m3:'Suivi des âmes & discipulat', m4:'Départements & ouvriers',
+    m5:'Mission & implantation'
+  };
+  navs.forEach(n=>n.addEventListener('click',()=>{
+    navs.forEach(x=>x.classList.remove('active'));
+    n.classList.add('active');
+    const v = n.dataset.v;
+    views.forEach(x=>x.classList.remove('show'));
+    document.getElementById(v).classList.add('show');
+    document.getElementById('greet').textContent = titles[v];
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+  document.querySelectorAll('.langs button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.langs button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+</script>
+</body>
+</html>

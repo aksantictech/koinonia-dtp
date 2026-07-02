@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Koinonia — Tableau de bord pastoral</title>
+<meta name="theme-color" content="#120e22">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#120e22;--bg2:#0c0918;--surface:#1d1736;--surface2:#241d44;
+    --line:rgba(232,184,95,.14);--line-soft:rgba(255,255,255,.06);
+    --gold:#e8b85f;--gold2:#cf9a3d;--violet:#9b7fd4;--ink:#f5efe4;--muted:#a193ba;
+    --green:#6bbf8a;--coral:#e58163;--blue:#7fa8d4;--r:18px;
+    --shadow:0 24px 60px -28px rgba(0,0,0,.7)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);min-height:100vh;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(155,127,212,.18),transparent 60%),
+      radial-gradient(900px 600px at 0% 110%,rgba(232,184,95,.10),transparent 55%),
+      linear-gradient(160deg,var(--bg),var(--bg2));-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  .side{border-right:1px solid var(--line-soft);padding:24px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;
+    background:linear-gradient(180deg,rgba(29,23,54,.5),rgba(12,9,24,.2));backdrop-filter:blur(6px)}
+  .brand{display:flex;align-items:center;gap:11px;padding:4px 6px 20px}
+  .crest{width:40px;height:40px;border-radius:11px;background:radial-gradient(circle at 35% 30%,var(--gold),var(--gold2));display:grid;place-items:center;color:#2a1f06;font-family:'Fraunces';font-weight:700;font-size:21px}
+  .brand h1{font-family:'Fraunces';font-weight:600;font-size:18px;line-height:1}
+  .brand span{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  .navlabel{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:12px 8px 5px;opacity:.7}
+  .nav{display:flex;align-items:center;gap:12px;padding:11px 11px;border-radius:12px;color:var(--muted);font-size:13px;font-weight:500;border:1px solid transparent}
+  .nav .ic{width:18px;text-align:center}
+  .nav small{display:block;font-size:9.5px;color:var(--muted);font-weight:400}
+  .nav.active{background:linear-gradient(100deg,rgba(232,184,95,.16),rgba(155,127,212,.10));color:var(--ink);border-color:var(--line)}
+  .nav.soon{opacity:.5}
+  .nav.soon::after{content:'bientôt';margin-left:auto;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--violet)}
+  .side a.back{margin-top:auto;font-size:11.5px;color:var(--muted);padding:10px 8px;border-top:1px solid var(--line-soft)}
+  .main{padding:24px 28px 60px;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+  .hello h2{font-family:'Fraunces';font-weight:600;font-size:26px}
+  .hello p{color:var(--muted);font-size:13px;margin-top:3px}
+  .hello b{color:var(--gold)}
+  .src{display:flex;align-items:center;gap:10px}
+  .badge{font-size:10.5px;font-weight:700;letter-spacing:.5px;padding:6px 11px;border-radius:20px;border:1px solid var(--line-soft)}
+  .badge.live{color:var(--green);background:rgba(107,191,138,.12);border-color:rgba(107,191,138,.3)}
+  .badge.demo{color:var(--violet);background:rgba(155,127,212,.12);border-color:rgba(155,127,212,.3)}
+  .login{display:flex;gap:6px}
+  .login input{font-family:inherit;font-size:12px;background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;padding:8px 10px;color:var(--ink);width:128px}
+  .login button{font-family:inherit;font-size:12px;font-weight:600;border:none;border-radius:9px;padding:8px 13px;background:linear-gradient(120deg,var(--gold),var(--gold2));color:#241803;cursor:pointer}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:18px}
+  .kpi{background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line-soft);border-radius:var(--r);padding:17px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+  .kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(232,184,95,.10),transparent 70%)}
+  .kpi .lab{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .kpi .dot{width:7px;height:7px;border-radius:50%}
+  .kpi .val{font-family:'Fraunces';font-size:31px;font-weight:600;margin-top:7px}
+  .kpi .trend{font-size:11px;margin-top:4px;color:var(--green)}
+  .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:18px}
+  .card{background:linear-gradient(165deg,var(--surface),rgba(36,29,68,.7));border:1px solid var(--line-soft);border-radius:var(--r);padding:19px 21px;box-shadow:var(--shadow)}
+  .card h3{font-family:'Fraunces';font-weight:600;font-size:16px;display:flex;align-items:center;gap:9px}
+  .card h3 .tag{margin-left:auto;font-family:'Inter';font-size:10px;font-weight:600;color:var(--gold);background:rgba(232,184,95,.12);padding:3px 9px;border-radius:20px}
+  .sub{color:var(--muted);font-size:12px;margin:3px 0 15px}
+  .journey{display:flex;margin-top:4px}
+  .stage{flex:1;text-align:center;padding:0 3px}
+  .stage .num{font-family:'Fraunces';font-size:24px;font-weight:600;line-height:1}
+  .stage .nm{font-size:10px;color:var(--muted);margin-top:6px}
+  .track{position:relative;margin-top:16px}
+  .track .line{position:absolute;top:6px;left:8%;right:8%;height:2px;background:linear-gradient(90deg,var(--gold),var(--violet));opacity:.4}
+  .track .nodes{display:flex;justify-content:space-between;position:relative}
+  .track .nd{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:2px solid var(--gold)}
+  .vrow .vtop{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+  .vrow .vtop span{color:var(--muted);font-size:11px}
+  .vbar{height:9px;border-radius:9px;background:rgba(255,255,255,.06);margin:8px 0 16px;overflow:hidden}
+  .vfill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+  .vfill.v2{background:linear-gradient(90deg,var(--violet),#c9aef0)}
+  .vfill.v3{background:linear-gradient(90deg,var(--green),#9fe3bb)}
+  .legend{display:flex;gap:16px;margin-top:9px;font-size:11px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  .alert{display:flex;align-items:flex-start;gap:11px;padding:11px;border-radius:12px;background:rgba(118,105,145,.07);border:1px solid var(--line-soft);margin-bottom:9px}
+  .alert .ai{width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center;font-size:14px}
+  .a-warn{background:rgba(229,129,99,.16);color:var(--coral)} .a-pray{background:rgba(155,127,212,.16);color:var(--violet)} .a-ok{background:rgba(107,191,138,.16);color:var(--green)}
+  .alert .t{font-size:12.5px;font-weight:600}.alert .d{font-size:11px;color:var(--muted);margin-top:2px}
+  .ag{display:flex;gap:13px;padding:10px 2px;border-bottom:1px solid var(--line-soft)}
+  .ag:last-child{border:none}.ag .tm{font-family:'Fraunces';font-size:13px;color:var(--gold);width:52px;flex:none;font-weight:600}
+  .ag .ti{font-size:12.5px;font-weight:600}.ag .ts{font-size:11px;color:var(--muted);margin-top:1px}
+  .skeleton{color:var(--muted);font-size:12px;padding:8px 0}
+  @media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+
+  /* logo animé (sidebar) */
+  .crest.logo{padding:0;overflow:hidden;position:relative;background:none;
+    box-shadow:0 0 0 1.5px rgba(232,184,95,.55),0 0 16px rgba(155,127,212,.55);animation:floatY 5s ease-in-out infinite}
+  .crest.logo img{width:100%;height:100%;object-fit:cover;display:block;border-radius:11px}
+  .crest.logo::after{content:"";position:absolute;inset:-2px;border-radius:13px;
+    background:conic-gradient(from 0deg,transparent 0 62%,rgba(232,184,95,.9) 78%,transparent 92%);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+            mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+    animation:spin 6s linear infinite}
+  /* avatar pasteur (topbar) */
+  .pastor-av{width:46px;height:46px;border-radius:14px;object-fit:cover;flex:none;
+    border:1px solid var(--line);box-shadow:0 8px 20px -10px #000}
+  .hellorow{display:flex;align-items:center;gap:13px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  @media (prefers-reduced-motion:reduce){.crest.logo,.crest.logo::after{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="crest logo"><img src="logo-mark.png" alt="Dans Ta Présence Church"></div><div><h1>Koinonia</h1><span>Dans Ta Présence</span></div></div>
+    <div class="navlabel">Modules</div>
+    <div class="nav active"><span class="ic">✦</span><div>Pasteur titulaire<small>Tableau de bord</small></div></div>
+    <div class="nav soon"><span class="ic">❖</span><div>Membres</div></div>
+    <div class="nav soon"><span class="ic">✚</span><div>Suivi des âmes</div></div>
+    <div class="nav soon"><span class="ic">⬡</span><div>Départements</div></div>
+    <div class="nav soon"><span class="ic">◎</span><div>Mission</div></div>
+    <a class="back" href="index.html">← Page publique de l'église</a>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="hellorow">
+        <img class="pastor-av" src="pasteur-portrait.jpg" alt="Pasteur Mike Kalambay">
+        <div class="hello">
+          <h2>Présence du Royaume</h2>
+          <p>Vue pastorale · <b id="todayLabel"></b> · Site mère — Kinshasa</p>
+        </div>
+      </div>
+      <div class="src">
+        <span id="srcBadge" class="badge demo">● DÉMO</span>
+        <div class="login" id="loginBox">
+          <input id="email" placeholder="email pasteur" type="email">
+          <input id="pwd" placeholder="mot de passe" type="password">
+          <button onclick="signIn()">Connexion</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>✦ Parcours de l'âme<span class="tag">CŒUR DE LA VISION</span></h3>
+        <p class="sub">De la première visite à l'envoi : où se trouve chaque âme.</p>
+        <div class="journey" id="funnel"><div class="skeleton">Chargement…</div></div>
+        <div class="track"><div class="line"></div><div class="nodes" id="funnelNodes"></div></div>
+      </div>
+      <div class="card">
+        <h3>◎ Progression de la vision</h3>
+        <p class="sub">Objectifs annuels 2026</p>
+        <div id="vision"><div class="skeleton">Chargement…</div></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>↗ Courbe de croissance</h3>
+        <p class="sub">Présence moyenne aux cultes — 12 dernières semaines</p>
+        <svg id="chart" viewBox="0 0 560 190" width="100%" height="190" preserveAspectRatio="none"></svg>
+        <div class="legend"><span><i style="background:var(--gold)"></i>Présence hebdomadaire</span></div>
+      </div>
+      <div class="card">
+        <h3>⚠ Centre d'alertes</h3>
+        <p class="sub">Âmes nécessitant un suivi</p>
+        <div id="alerts"><div class="skeleton">Chargement…</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🕊 Agenda pastoral du jour</h3>
+      <p class="sub">Rendez-vous & accompagnements</p>
+      <div id="agenda"><div class="skeleton">Chargement…</div></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+window.KOINONIA = window.KOINONIA || {
+  CHURCH_ID:'11111111-1111-1111-1111-111111111111',
+  isConfigured(){return false;}, client(){return null;}
+};
+const K=window.KOINONIA, sb=K.client();
+let LIVE=K.isConfigured();
+document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+if(!LIVE) document.getElementById('loginBox').style.display='none';
+
+/* ---- Données démo alignées sur 02_seed.sql ---- */
+const DEMO={
+  kpis:{members_count:4820,new_converts_count:312,workers_count:643,departments_count:9},
+  funnel:[['Visiteurs',512],['Convertis',312],['En formation',286],['Baptisés',198],['En cellule',2240],['Au service',643]],
+  vision:[['Âmes gagnées',3240,5000,'v1'],['Disciples formés',740,1200,'v2'],['Églises implantées',7,12,'v3']],
+  growth:[2600,2655,2710,2765,2820,2875,2930,2985,3040,3095,3150,3205],
+  alerts:[
+    ['warn','9 convertis sans contact depuis 7 jours','Risque de décrochage — conseillers notifiés'],
+    ['pray','23 demandes de prière en attente','Dont 4 marquées urgentes'],
+    ['ok','14 témoignages à valider','Pour le culte de dimanche']
+  ],
+  agenda:[['09:00','Réunion du conseil pastoral','Vision implantation — Goma & diaspora'],
+    ['11:30',"Entretien d'accompagnement — Famille Tshibasu",'Suivi spirituel · confidentiel'],
+    ['14:00','Validation des baptêmes','42 candidats prêts'],
+    ['16:00','Point responsables de départements','Évangélisation · Jeunesse · Intercession']]
+};
+
+function setBadge(){const b=document.getElementById('srcBadge');
+  if(LIVE){b.className='badge live';b.textContent='● DONNÉES LIVE';}
+  else{b.className='badge demo';b.textContent='● DÉMO';}}
+
+async function signIn(){
+  const email=document.getElementById('email').value, pwd=document.getElementById('pwd').value;
+  const{error}=await sb.auth.signInWithPassword({email,password:pwd});
+  if(error){alert('Connexion échouée : '+error.message);return;}
+  loadAll();
+}
+
+/* ---- Rendu ---- */
+function renderKpis(k){
+  const cols=[['Membres actifs','var(--gold)',k.members_count,'+6,4% ce trimestre'],
+    ['Nouveaux convertis','var(--violet)',k.new_converts_count,'+48 cette semaine'],
+    ['Ouvriers','var(--green)',k.workers_count,'+12 ce mois'],
+    ['Départements','var(--blue)',k.departments_count,'tous actifs']];
+  document.getElementById('kpis').innerHTML=cols.map(c=>
+    `<div class="kpi"><div class="lab"><span class="dot" style="background:${c[1]}"></span>${c[0]}</div>
+     <div class="val">${Number(c[2]).toLocaleString('fr-FR')}</div><div class="trend">▲ ${c[3]}</div></div>`).join('');
+}
+function renderFunnel(rows){
+  document.getElementById('funnel').innerHTML=rows.map(r=>
+    `<div class="stage"><div class="num">${Number(r[1]).toLocaleString('fr-FR')}</div><div class="nm">${r[0]}</div></div>`).join('');
+  document.getElementById('funnelNodes').innerHTML=rows.map(()=>`<div class="nd"></div>`).join('');
+}
+function renderVision(rows){
+  document.getElementById('vision').innerHTML=rows.map(v=>{
+    const pct=Math.round(100*Math.min(v[1],v[2])/v[2]);
+    return `<div class="vrow"><div class="vtop"><b>${v[0]}</b><span>${v[1].toLocaleString('fr-FR')} / ${v[2].toLocaleString('fr-FR')}</span></div>
+    <div class="vbar"><div class="vfill ${v[3]}" style="width:${pct}%"></div></div></div>`;}).join('');
+}
+function renderChart(vals){
+  const w=560,h=190,max=Math.max(...vals)*1.08,min=Math.min(...vals)*.92;
+  const x=i=>i*(w/(vals.length-1));
+  const y=v=>h-8-((v-min)/(max-min))*(h-30);
+  const line=vals.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(0)},${y(v).toFixed(0)}`).join(' ');
+  const area=`${line} L${w},${h} L0,${h} Z`;
+  document.getElementById('chart').innerHTML=`
+    <defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(232,184,95,.45)"/><stop offset="100%" stop-color="rgba(232,184,95,0)"/></linearGradient></defs>
+    <g stroke="rgba(255,255,255,.05)"><line x1="0" y1="60" x2="560" y2="60"/><line x1="0" y1="120" x2="560" y2="120"/></g>
+    <path d="${area}" fill="url(#gg)"/><path d="${line}" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+    <circle cx="${w}" cy="${y(vals[vals.length-1])}" r="4" fill="var(--gold)"/>`;
+}
+function renderAlerts(rows){
+  document.getElementById('alerts').innerHTML=rows.map(a=>{
+    const icon=a[0]==='warn'?'!':a[0]==='pray'?'✚':'✓';
+    return `<div class="alert"><div class="ai a-${a[0]}">${icon}</div><div><div class="t">${a[1]}</div><div class="d">${a[2]}</div></div></div>`;
+  }).join('');
+}
+function renderAgenda(rows){
+  document.getElementById('agenda').innerHTML=rows.map(a=>
+    `<div class="ag"><div class="tm">${a[0]}</div><div><div class="ti">${a[1]}</div><div class="ts">${a[2]}</div></div></div>`).join('');
+}
+
+/* ---- Chargement (live ou démo) ---- */
+async function loadAll(){
+  const cid=K.CHURCH_ID;
+  let data={...DEMO};
+  if(LIVE){
+    try{
+      const {data:{session}}=await sb.auth.getSession();
+      if(session){
+        const kp=await sb.from('v_church_kpis').select('*').eq('church_id',cid).single();
+        if(kp.data) data.kpis=kp.data;
+        const fn=await sb.from('v_soul_funnel').select('*').eq('church_id',cid);
+        if(fn.data&&fn.data.length) data.funnel=fn.data.map(r=>[r.stage_label,r.souls]);
+        const vp=await sb.from('v_vision_progress').select('*').eq('church_id',cid);
+        if(vp.data&&vp.data.length){const styl={ames:'v1',disciples:'v2',eglises:'v3'},lab={ames:'Âmes gagnées',disciples:'Disciples formés',eglises:'Églises implantées'};
+          data.vision=vp.data.map(r=>[lab[r.metric],r.achieved,r.target,styl[r.metric]]);}
+        const gw=await sb.from('v_growth_weekly').select('*').eq('church_id',cid).order('week');
+        if(gw.data&&gw.data.length) data.growth=gw.data.map(r=>r.attendance);
+        const al=await sb.from('v_followup_alerts').select('*').eq('church_id',cid);
+        const pc=await sb.from('prayer_requests').select('id',{count:'exact',head:true}).eq('status','en_attente');
+        const tc=await sb.from('testimonies').select('id',{count:'exact',head:true}).eq('status','en_attente');
+        data.alerts=[
+          ['warn',(al.count??al.data?.length??0)+' âmes sans contact depuis 7 jours','Conseillers notifiés par SMS'],
+          ['pray',(pc.count??0)+' demandes de prière en attente','À traiter'],
+          ['ok',(tc.count??0)+' témoignages à valider','Pour le prochain culte']];
+        const ag=await sb.from('pastoral_appointments').select('*').eq('church_id',cid).order('starts_at');
+        if(ag.data&&ag.data.length) data.agenda=ag.data.map(r=>{
+          const t=new Date(r.starts_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+          return [t,r.title,r.is_confidential?'Confidentiel':r.kind];});
+      } else { LIVE=false; }  // pas de session => démo
+    }catch(e){console.warn('Repli démo:',e);LIVE=false;}
+  }
+  setBadge();
+  renderKpis(data.kpis);renderFunnel(data.funnel);renderVision(data.vision);
+  renderChart(data.growth);renderAlerts(data.alerts);renderAgenda(data.agenda);
+}
+loadAll();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
