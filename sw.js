@@ -5,7 +5,7 @@
      repli silencieux géré côté page (mode démo / cache).
    Pour l'offline d'écriture (file d'attente), voir ARCHITECTURE.md (outbox IndexedDB).
 */
-const CACHE = 'koinonia-v22';
+const CACHE = 'koinonia-v23';
 const SHELL = [
   './', './index.html', './dashboard.html', './members.html', './souls.html', './departments.html', './mission.html', './requests.html', './publications.html', './diagnostic.html', './push.js', './config.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',

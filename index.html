@@ -225,6 +225,37 @@
   .pubcard a.pmedia{margin-top:12px;align-self:flex-start;font-size:13px;font-weight:600;color:var(--gold)}
   .pubempty{grid-column:1/-1;text-align:center;color:var(--muted);padding:30px 0}
   .pubcard.pubhighlight{outline:2px solid var(--gold);box-shadow:0 0 0 5px rgba(232,184,95,.22);border-color:var(--gold)}
+  /* ============================================================
+     REFONTE MOBILE — plus pro & moderne
+  ============================================================ */
+  html{scroll-behavior:smooth;scroll-padding-top:72px}
+  @media(max-width:860px){
+    .wrap{padding:0 16px}
+    .hero{padding:26px 0 20px}
+    .hero .lead{font-size:14.5px;margin-top:12px}
+    .sec-head{margin-bottom:20px}
+    .sec-head h2{font-size:clamp(22px,6vw,30px)}
+    .btn{padding:13px 18px;font-size:14px}
+    /* Actualités : 1 colonne, cartes douces, filtres défilables */
+    .pubfeed{grid-template-columns:1fr;gap:12px}
+    .pubcard{border-radius:18px;padding:16px}
+    .pubfilters{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .pubfilters::-webkit-scrollbar{display:none}
+    .pubchip{flex:none}
+    .pmedia{display:inline-block;padding:9px 14px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(232,184,95,.08);cursor:pointer;font-family:inherit}
+    .gal-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  }
+  @media(max-width:480px){ .gal-grid{grid-template-columns:repeat(2,1fr)} }
+  /* Barre d'onglets modernisée */
+  @media(max-width:860px){
+    body{padding-bottom:82px}
+    .tabbar{padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:rgba(16,12,30,.9);backdrop-filter:blur(18px) saturate(1.2);border-top:1px solid rgba(255,255,255,.07);box-shadow:0 -10px 30px -14px rgba(0,0,0,.7)}
+    .tabbar .tab{gap:4px;font-size:10px;font-weight:600;padding:8px 4px;border-radius:14px;position:relative;transition:color .2s,background .2s}
+    .tabbar .tab .i{font-size:19px}
+    .tabbar .tab.active,.tabbar .tab.gold{color:var(--gold)}
+    .tabbar .tab.active::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:20px;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
+    .tabbar .tab:active{background:rgba(255,255,255,.06)}
+  }
 </style>
 </head>
 <body>
@@ -508,7 +539,7 @@
 
   <!-- BARRE DE NAVIGATION DU BAS (mobile) -->
   <nav class="tabbar">
-    <a class="tab gold" href="#accueil"><span class="i">⌂</span><span data-i18n="tab_home">Accueil</span></a>
+    <a class="tab active" href="#accueil"><span class="i">⌂</span><span data-i18n="tab_home">Accueil</span></a>
     <a class="tab" href="#videos"><span class="i">▶</span><span data-i18n="tab_videos">Vidéos</span></a>
     <a class="tab" href="#galerie"><span class="i">▦</span><span data-i18n="tab_gallery">Galerie</span></a>
     <button class="tab" onclick="openModal('mDon')"><span class="i">♥</span><span data-i18n="tab_don">Dons</span></button>
@@ -710,12 +741,23 @@
   let PUBS=[], PUB_FILT='all';
   const PUBKINDS={actualite:['Actualité','#7fa8d4'],activite:['Activité','#6bbf8a'],video:['Vidéo','#e58163'],message:['Message','#9b7fd4'],audio:['Audio','#e8b85f']};
   async function loadPublications(){
-    PUBS=[
-      {kind:'actualite',title:'Bienvenue sur notre application',body:"Retrouvez ici les actualités, activités et messages de l'église.",published_at:''},
-      {kind:'message',title:'Un mot pour ton cœur',body:"« L'Éternel est près de ceux qui ont le cœur brisé. » Garde courage, Il combat pour toi.",published_at:''},
-      {kind:'activite',title:'Culte de réveil — dimanche',body:'Un temps de prière précédera le culte à 7h30. Venez nombreux !',published_at:''}
-    ];
-    if(LIVE){try{const{data}=await sb.from('publications').select('*').eq('is_published',true).order('published_at',{ascending:false}).limit(30);if(data&&data.length)PUBS=data;}catch(e){}}
+    let rows=null;
+    if(LIVE){
+      try{
+        const {data,error}=await sb.from('publications').select('*').eq('is_published',true).order('published_at',{ascending:false}).limit(30);
+        if(error) throw error;
+        rows=data||[];
+      }catch(e){ console.warn('publications:',e); rows=null; }
+    }
+    if(rows===null){
+      PUBS=[
+        {kind:'actualite',title:'Bienvenue sur notre application',body:"Retrouvez ici les actualités, activités et messages de l'église.",published_at:''},
+        {kind:'message',title:'Un mot pour ton cœur',body:"« L'Éternel est près de ceux qui ont le cœur brisé. » Garde courage, Il combat pour toi.",published_at:''},
+        {kind:'activite',title:'Culte de réveil — dimanche',body:'Un temps de prière précédera le culte à 7h30. Venez nombreux !',published_at:''}
+      ];
+    } else {
+      PUBS=rows;
+    }
     renderPubFilters(); renderPubs(); openPubFromHash();
   }
   function renderPubFilters(){
@@ -725,14 +767,19 @@
       .map(d=>`<button class="pubchip ${PUB_FILT===d[0]?'on':''}" onclick="setPubFilt('${d[0]}')">${d[1]}</button>`).join('');
   }
   function setPubFilt(f){PUB_FILT=f;renderPubFilters();renderPubs();}
+  function ytId(u){ if(!u) return ''; const m=String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/); return m?m[1]:''; }
   function renderPubs(){
     const rows=PUBS.filter(p=>PUB_FILT==='all'||p.kind===PUB_FILT);
     const F=document.getElementById('pubFeed');
     if(!rows.length){F.innerHTML='<div class="pubempty">Aucune publication pour le moment.</div>';return;}
     F.innerHTML=rows.map(p=>{const k=PUBKINDS[p.kind]||['',''];const date=(p.published_at||'').toString().slice(0,10);
+      const yid=(p.kind==='video')?ytId(p.media_url):'';
+      const media = yid
+        ? `<button class="pmedia" onclick="playVideo('${yid}')">▶ Regarder dans l'app</button>`
+        : (p.media_url?`<a class="pmedia" href="${esc(p.media_url)}" target="_blank" rel="noopener">▶ Ouvrir</a>`:'');
       return `<div class="pubcard"${p.id?` id="pub-${esc(String(p.id))}"`:''}><span class="pk" style="background:${k[1]}22;color:${k[1]}">${k[0]}</span>
         <h3>${esc(p.title)}</h3>${p.body?`<p>${esc(p.body)}</p>`:''}
-        ${p.media_url?`<a class="pmedia" href="${esc(p.media_url)}" target="_blank" rel="noopener">▶ Ouvrir</a>`:''}
+        ${media}
         ${date?`<div class="pdate">${esc(date)}</div>`:''}</div>`;}).join('');
   }
   function openPubFromHash(){
@@ -808,6 +855,22 @@
   let saved='fr'; try{saved=localStorage.getItem('ko_lang')||'fr';}catch(e){}
   setLang(saved);
   renderVideos();loadEvents();loadTestimonies();loadNetwork();loadPublications();
+
+  /* Scroll-spy : surligne l'onglet de la section visible */
+  (function(){
+    if(!('IntersectionObserver' in window)) return;
+    const tabs={};
+    document.querySelectorAll('.tabbar a.tab').forEach(a=>{const id=(a.getAttribute('href')||'').replace('#','');if(id)tabs[id]=a;});
+    const ids=Object.keys(tabs).filter(id=>document.getElementById(id));
+    if(!ids.length) return;
+    const obs=new IntersectionObserver(es=>{
+      es.forEach(e=>{ if(e.isIntersecting){
+        document.querySelectorAll('.tabbar .tab').forEach(t=>t.classList.remove('active'));
+        const t=tabs[e.target.id]; if(t) t.classList.add('active');
+      }});
+    },{rootMargin:'-45% 0px -50% 0px',threshold:0});
+    ids.forEach(id=>obs.observe(document.getElementById(id)));
+  })();
 
   /* ---- GALERIE + LIGHTBOX ---- */
   const GALLERY = Array.from({length:18},(_,i)=>'gallery/g'+String(i+1).padStart(2,'0'));
