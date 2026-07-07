@@ -2,7 +2,7 @@
   "name": "koinonia-dtp-church",
   "version": "1.0.0",
   "private": true,
-  "description": "Koinonia — plateforme de gestion d'église (Dans Ta Présence Church)",
+  "description": "Koinonia — plateforme de gestion d'église (Dans Sa Présence Church)",
   "scripts": {
     "dev": "live-server --port=8000 --no-browser=false",
     "start": "live-server --port=8000"

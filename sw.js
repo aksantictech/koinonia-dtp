@@ -5,7 +5,7 @@
      repli silencieux géré côté page (mode démo / cache).
    Pour l'offline d'écriture (file d'attente), voir ARCHITECTURE.md (outbox IndexedDB).
 */
-const CACHE = 'koinonia-v21';
+const CACHE = 'koinonia-v22';
 const SHELL = [
   './', './index.html', './dashboard.html', './members.html', './souls.html', './departments.html', './mission.html', './requests.html', './publications.html', './diagnostic.html', './push.js', './config.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
@@ -47,7 +47,7 @@ self.addEventListener('fetch', e => {
 
 /* ---- Notifications push ---- */
 self.addEventListener('push', e => {
-  let d = { title: 'Dans Ta Présence Church', body: 'Nouvelle publication', kind: '' };
+  let d = { title: 'Dans Sa Présence Church', body: 'Nouvelle publication', kind: '' };
   try { if (e.data) d = Object.assign(d, e.data.json()); } catch (_) {}
   const icons = { actualite:'📰', activite:'📅', video:'▶', message:'🕊', audio:'🎧' };
   const prefix = icons[d.kind] ? icons[d.kind] + ' ' : '';
