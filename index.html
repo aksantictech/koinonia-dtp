@@ -257,6 +257,19 @@
     .tabbar .tab.active::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:20px;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
     .tabbar .tab:active{background:rgba(255,255,255,.06)}
   }
+  /* ============================================================
+     PREMIÈRE REFONTE — finitions modernes
+  ============================================================ */
+  header{backdrop-filter:blur(16px) saturate(1.35);background:rgba(14,10,26,.74)}
+  .acard,.vcard,.pubcard,.tcard,.card{transition:transform .25s cubic-bezier(.2,.7,.3,1),border-color .25s,box-shadow .25s}
+  .acard:hover,.pubcard:hover,.vcard:hover{transform:translateY(-4px);border-color:var(--line);box-shadow:0 26px 55px -32px rgba(0,0,0,.85)}
+  .btn-gold:hover{box-shadow:0 20px 40px -14px rgba(232,184,95,.85);transform:translateY(-2px)}
+  .btn-ghost:hover{border-color:var(--gold)}
+  .pillar{transition:.2s}.pillar:hover{border-color:var(--line);background:var(--surface2);transform:translateY(-1px)}
+  .sec-head h2{letter-spacing:.3px}
+  section.blk{padding:46px 0}
+  .pubcard h3{transition:color .2s}.pubcard:hover h3{color:var(--gold)}
+  @media(min-width:861px){ .pubfeed{gap:18px} }
 </style>
 </head>
 <body>
@@ -452,7 +465,7 @@
       </div>
       <div class="muted"><span data-i18n="foot_sub">Centre Évangélique d'Adoration et d'Édification</span><br>
         113 Av. Kalembelembe × Kasa-Vubu, Kinshasa · Dimanche 08:00–10:00<br>
-        <a href="https://www.facebook.com/mko243?locale=fr_FR" target="_blank" rel="noopener" style="color:var(--gold)">Facebook</a> · Propulsé par <b style="color:var(--gold)">Koinonia</b> <span style="opacity:.6">· v25</span></div>
+        <a href="https://www.facebook.com/mko243?locale=fr_FR" target="_blank" rel="noopener" style="color:var(--gold)">Facebook</a> · Propulsé par <b style="color:var(--gold)">Koinonia</b> <span style="opacity:.6">· v26</span></div>
     </div>
   </footer>
 
