@@ -5,7 +5,7 @@
      repli silencieux géré côté page (mode démo / cache).
    Pour l'offline d'écriture (file d'attente), voir ARCHITECTURE.md (outbox IndexedDB).
 */
-const CACHE = 'koinonia-v24';
+const CACHE = 'koinonia-v25';
 const SHELL = [
   './', './index.html', './dashboard.html', './members.html', './souls.html', './departments.html', './mission.html', './requests.html', './publications.html', './diagnostic.html', './push.js', './config.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
@@ -29,19 +29,32 @@ self.addEventListener('fetch', e => {
   // Laisser passer tout ce qui est cross-origin (YouTube, CDN, fonts...) sans interférer
   if (url.origin !== location.origin) return;
 
-  // Réseau d'abord pour les API (Supabase) — ne pas servir des données périmées
+  // Réseau d'abord pour les API (Supabase)
   if (url.hostname.endsWith('supabase.co') || url.pathname.includes('/rest/') || url.pathname.includes('/auth/')) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
 
-  // Cache d'abord pour le shell — ouverture instantanée et hors-ligne
+  // Médias (images, vidéos, polices) : cache d'abord (rapide + hors-ligne)
+  if (/\.(png|jpe?g|webp|gif|svg|ico|mp4|webm|woff2?|ttf)$/i.test(url.pathname)) {
+    e.respondWith(
+      caches.match(e.request).then(c => c || fetch(e.request).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(ch => ch.put(e.request, copy)).catch(() => {});
+        return res;
+      }))
+    );
+    return;
+  }
+
+  // HTML / JS / le reste : RÉSEAU D'ABORD → toujours la dernière version en ligne,
+  // cache seulement en secours (hors-ligne).
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+    fetch(e.request).then(res => {
       const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+      caches.open(CACHE).then(ch => ch.put(e.request, copy)).catch(() => {});
       return res;
-    }).catch(() => caches.match('./index.html')))
+    }).catch(() => caches.match(e.request).then(c => c || caches.match('./index.html')))
   );
 });
 
