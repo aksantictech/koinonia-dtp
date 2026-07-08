@@ -85,7 +85,10 @@
     <div class="fld"><label>Titre</label><input id="p_titre" placeholder="Titre de la publication"></div>
     <div class="fld"><label>Contenu / message</label><textarea id="p_body" rows="5" placeholder="Écrivez ici…"></textarea></div>
     <div class="fld"><label>Lien média (YouTube, audio…) — optionnel</label><input id="p_media" placeholder="https://…"></div>
-    <div class="fld"><label>Image / vignette (URL) — optionnel</label><input id="p_image" placeholder="https://…"></div>
+    <div class="fld"><label>Photo (optionnel)</label>
+      <input id="p_file" type="file" accept="image/*" onchange="previewPhoto()">
+      <div id="p_preview" style="margin-top:8px"></div>
+    </div>
     <label class="chk"><input type="checkbox" id="p_pub" checked> Publié (visible par tous)</label>
     <label class="chk"><input type="checkbox" id="p_notify" checked> Envoyer une notification aux téléphones</label>
     <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
@@ -153,18 +156,41 @@ function render(){
     return `<div class="pub ${p.is_published?'':'off'}">
       <button class="dedit" onclick="editPub(${i})">✎</button>
       <span class="k" style="background:${k[1]}22;color:${k[1]}">${k[0]}</span>
+      ${p.image_url?`<img src="${esc(p.image_url)}" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:10px">`:''}
       <h3>${esc(p.title)}</h3>
       ${p.body?`<div class="bd">${esc(p.body)}</div>`:''}
       <div class="mt">${p.media_url?`<a class="media" href="${esc(p.media_url)}" target="_blank" rel="noopener">▶ Ouvrir le média</a>`:''}<span>${esc(date)}</span>${p.is_published?'':'<span style="color:var(--coral)">Brouillon</span>'}</div>
     </div>`;}).join('');
 }
-function newPub(){EDIT=-1;document.getElementById('p_title').textContent='Nouvelle publication';p_kind.value='actualite';p_titre.value='';p_body.value='';p_media.value='';p_image.value='';p_pub.checked=true;p_notify.checked=true;document.getElementById('p_disable').style.display='none';document.getElementById('ov').classList.add('show');}
-function editPub(i){EDIT=i;const p=PUBS[i];document.getElementById('p_title').textContent='Modifier la publication';p_kind.value=p.kind;p_titre.value=p.title||'';p_body.value=p.body||'';p_media.value=p.media_url||'';p_image.value=p.image_url||'';p_pub.checked=!!p.is_published;p_notify.checked=false;document.getElementById('p_disable').style.display='inline-block';document.getElementById('ov').classList.add('show');}
+function newPub(){EDIT=-1;document.getElementById('p_title').textContent='Nouvelle publication';p_kind.value='actualite';p_titre.value='';p_body.value='';p_media.value='';document.getElementById('p_file').value='';document.getElementById('p_preview').innerHTML='';p_pub.checked=true;p_notify.checked=true;document.getElementById('p_disable').style.display='none';document.getElementById('ov').classList.add('show');}
+function editPub(i){EDIT=i;const p=PUBS[i];document.getElementById('p_title').textContent='Modifier la publication';p_kind.value=p.kind;p_titre.value=p.title||'';p_body.value=p.body||'';p_media.value=p.media_url||'';document.getElementById('p_file').value='';document.getElementById('p_preview').innerHTML=p.image_url?`<img src="${p.image_url}" style="max-width:100%;border-radius:10px">`:'';p_pub.checked=!!p.is_published;p_notify.checked=false;document.getElementById('p_disable').style.display='inline-block';document.getElementById('ov').classList.add('show');}
+function previewPhoto(){const f=document.getElementById('p_file').files[0];const box=document.getElementById('p_preview');if(f){box.innerHTML=`<img src="${URL.createObjectURL(f)}" style="max-width:100%;border-radius:10px">`;}}
 function closeM(){document.getElementById('ov').classList.remove('show');}
 
 async function savePub(){
   const title=p_titre.value.trim(); if(!title){alert('Le titre est requis.');return;}
-  const row={kind:p_kind.value,title,body:p_body.value.trim()||null,media_url:p_media.value.trim()||null,image_url:p_image.value.trim()||null,is_published:p_pub.checked};
+  // Photo : conserver l'existante en édition, sinon téléverser le fichier choisi
+  let imageUrl = (EDIT>=0 && PUBS[EDIT]) ? (PUBS[EDIT].image_url||null) : null;
+  const file = document.getElementById('p_file').files[0];
+  if(file){
+    if(LIVE&&SESSION){
+      try{
+        const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+        const path='pub_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;
+        const {error:upErr}=await sb.storage.from('publications').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||'image/jpeg'});
+        if(upErr) throw upErr;
+        const {data:pu}=sb.storage.from('publications').getPublicUrl(path);
+        imageUrl=pu.publicUrl;
+      }catch(e){
+        console.error('upload',e);
+        alert("Échec de l'envoi de la photo.\n\n"+(e.message||JSON.stringify(e))+"\n\nAs-tu exécuté « setup_storage.sql » (bucket 'publications') ?");
+        return;
+      }
+    } else {
+      imageUrl=URL.createObjectURL(file); // aperçu démo uniquement
+    }
+  }
+  const row={kind:p_kind.value,title,body:p_body.value.trim()||null,media_url:p_media.value.trim()||null,image_url:imageUrl,is_published:p_pub.checked};
   try{
     if(EDIT<0){
       if(LIVE&&SESSION){
